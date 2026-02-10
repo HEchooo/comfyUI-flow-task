@@ -10,12 +10,10 @@ from fastapi.requests import Request
 
 from app.api.v1.router import api_router
 from app.core.config import settings
+from app.core.logging import setup_logging
 from app.db.init_db import init_db
 
-logging.basicConfig(
-    level=getattr(logging, settings.log_level.upper(), logging.INFO),
-    format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
-)
+setup_logging(settings.log_level, settings.log_dir)
 logger = logging.getLogger("app")
 
 app = FastAPI(title="Task Manager API", version="0.1.0")

@@ -194,3 +194,15 @@ sudo systemctl restart flow-task-web
 sudo systemctl stop flow-task-web
 sudo systemctl start flow-task-web
 ```
+
+## 9）后端日志说明
+
+后端日志默认目录为：
+
+- `backend/logs`（可通过后端 `.env` 的 `LOG_DIR` 调整）
+
+日志文件规则：
+
+- 当天日志固定写入：`app.log`
+- 每天 00:00 跨天轮转后，前一天日志文件名为：`YYYY_MM_DD.log`
+  例如：`2025_01_02.log`

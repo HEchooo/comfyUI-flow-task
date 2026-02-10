@@ -14,6 +14,7 @@ class Settings(BaseSettings):
     auth_token_expire_minutes: int = 1440
     upload_api_base_url: str = "http://api.test-hot-product.echooo.link"
     log_level: str = "INFO"
+    log_dir: str = "logs"
 
     max_image_size_mb: int = 10
     max_images_per_subtask: int = 10
