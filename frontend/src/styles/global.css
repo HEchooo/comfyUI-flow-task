@@ -1,0 +1,106 @@
+:root {
+  --page-text: #1a2942;
+  --card-bg: #ffffff;
+  --line: #d9e6f7;
+  --brand: #1565c0;
+  --brand-soft: #e8f2ff;
+  --accent: #0aa77f;
+  --danger: #d7263d;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  color: var(--page-text);
+  font-family: 'Plus Jakarta Sans', 'Avenir Next', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  background: radial-gradient(circle at 8% 10%, #f7fbff 0%, #f7fbff 30%, transparent 65%),
+    radial-gradient(circle at 90% 16%, #e9fff8 0%, #e9fff8 24%, transparent 62%),
+    linear-gradient(180deg, #f4f8ff 0%, #eef4fb 100%);
+}
+
+#app {
+  min-height: 100vh;
+}
+
+.el-card {
+  border-radius: 16px;
+  border: 1px solid var(--line);
+  box-shadow: 0 10px 30px rgba(19, 63, 127, 0.08);
+}
+
+.el-button--primary {
+  --el-button-bg-color: #1565c0;
+  --el-button-border-color: #1565c0;
+  --el-button-hover-bg-color: #1d73d8;
+  --el-button-hover-border-color: #1d73d8;
+}
+
+.el-button--danger {
+  --el-button-bg-color: var(--danger);
+  --el-button-border-color: var(--danger);
+}
+
+.danger-delete-box .el-message-box__status {
+  color: var(--danger) !important;
+}
+
+.danger-delete-box .el-button--primary {
+  --el-button-bg-color: var(--danger);
+  --el-button-border-color: var(--danger);
+  --el-button-hover-bg-color: #be1c31;
+  --el-button-hover-border-color: #be1c31;
+}
+
+.markdown-body {
+  color: #253958;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.markdown-body h1,
+.markdown-body h2,
+.markdown-body h3,
+.markdown-body h4,
+.markdown-body h5,
+.markdown-body h6 {
+  margin: 0 0 6px;
+  line-height: 1.35;
+  color: #1a4074;
+}
+
+.markdown-body p {
+  margin: 0 0 6px;
+}
+
+.markdown-body ul,
+.markdown-body ol {
+  margin: 0 0 6px;
+  padding-left: 18px;
+}
+
+.markdown-body code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+  font-size: 12px;
+  padding: 1px 5px;
+  border-radius: 5px;
+  background: #edf4ff;
+  color: #1d4f8f;
+}
+
+.markdown-body a {
+  color: #1565c0;
+  text-decoration: none;
+}
+
+.markdown-body a:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 768px) {
+  body {
+    background: linear-gradient(180deg, #f4f8ff 0%, #eef4fb 100%);
+  }
+}
