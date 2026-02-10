@@ -3,23 +3,23 @@
     <template #header>
       <div class="header-row">
         <div>
-          <div class="page-title">{{ isEdit ? '编辑模板' : '新建模板' }}</div>
-          <div class="page-subtitle">模板仅保存提示词和文本信息，不保存图片</div>
+          <div class="page-title">{{ isEdit ? '编辑工作流' : '新建工作流' }}</div>
+          <div class="page-subtitle">工作流仅保存提示词和文本信息，不保存图片</div>
         </div>
-        <el-button @click="$router.push('/templates')">返回模板列表</el-button>
+        <el-button @click="$router.push('/templates')">返回工作流列表</el-button>
       </div>
     </template>
 
     <el-form label-width="100px" :model="form" class="form-wrap">
-      <el-form-item label="模板标题">
+      <el-form-item label="工作流名称">
         <el-input v-model="form.title" maxlength="200" show-word-limit />
       </el-form-item>
-      <el-form-item label="模板描述">
+      <el-form-item label="工作流描述">
         <el-input v-model="form.description" type="textarea" :rows="3" />
       </el-form-item>
 
       <div class="subtask-header">
-        <h3>模板子任务</h3>
+        <h3>工作流子任务</h3>
         <el-button type="primary" plain @click="addSubtask">新增子任务</el-button>
       </div>
 
@@ -90,7 +90,7 @@
       </el-card>
 
       <el-form-item>
-        <el-button type="primary" :loading="submitting" @click="submit">{{ isEdit ? '保存模板' : '创建模板' }}</el-button>
+        <el-button type="primary" :loading="submitting" @click="submit">{{ isEdit ? '保存工作流' : '创建工作流' }}</el-button>
       </el-form-item>
     </el-form>
 
@@ -231,13 +231,13 @@ async function loadDetail() {
       extra: item.extra || {}
     }))
   } catch (error) {
-    ElMessage.error(error?.response?.data?.detail || '加载模板失败')
+    ElMessage.error(error?.response?.data?.detail || '加载工作流失败')
   }
 }
 
 async function submit() {
   if (!form.title.trim()) {
-    ElMessage.warning('模板标题不能为空')
+    ElMessage.warning('工作流名称不能为空')
     return
   }
   if (!validateSubtasks()) {
@@ -248,14 +248,14 @@ async function submit() {
     const payload = normalizePayload()
     if (isEdit.value) {
       await patchTaskTemplate(route.params.id, payload)
-      ElMessage.success('模板已更新')
+      ElMessage.success('工作流已更新')
     } else {
       await createTaskTemplate(payload)
-      ElMessage.success('模板已创建')
+      ElMessage.success('工作流已创建')
     }
     router.push('/templates')
   } catch (error) {
-    ElMessage.error(error?.response?.data?.detail || '保存模板失败')
+    ElMessage.error(error?.response?.data?.detail || '保存工作流失败')
   } finally {
     submitting.value = false
   }

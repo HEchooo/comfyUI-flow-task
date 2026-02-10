@@ -3,16 +3,16 @@
     <template #header>
       <div class="header-row">
         <div>
-          <div class="page-title">任务模板</div>
-          <div class="page-subtitle">维护可复用模板并快速生成任务</div>
+          <div class="page-title">工作流</div>
+          <div class="page-subtitle">维护可复用工作流并快速生成任务</div>
         </div>
-        <el-button type="primary" @click="$router.push('/templates/new')">新建模板</el-button>
+        <el-button type="primary" @click="$router.push('/templates/new')">新建工作流</el-button>
       </div>
     </template>
 
     <el-table :data="rows" v-loading="loading" border class="task-table">
-      <el-table-column prop="id" label="模板ID" min-width="260" />
-      <el-table-column prop="title" label="模板标题" min-width="180" />
+      <el-table-column prop="id" label="工作流ID" min-width="260" />
+      <el-table-column prop="title" label="工作流名称" min-width="180" />
       <el-table-column prop="subtask_count" label="子任务数" width="100" />
       <el-table-column prop="created_at" label="创建时间" min-width="200">
         <template #default="scope">{{ formatTime(scope.row.created_at) }}</template>
@@ -71,7 +71,7 @@ async function loadTemplates() {
     rows.value = result.items
     pagination.total = result.total
   } catch (error) {
-    ElMessage.error(error?.response?.data?.detail || '模板查询失败')
+    ElMessage.error(error?.response?.data?.detail || '工作流查询失败')
   } finally {
     loading.value = false
   }
@@ -85,7 +85,7 @@ function onPageChange(page) {
 async function handleCreateTask(row) {
   try {
     const created = await createTaskFromTemplate(row.id, {})
-    ElMessage.success('已从模板创建任务')
+    ElMessage.success('已从工作流创建任务')
     router.push(`/tasks/${created.id}/edit`)
   } catch (error) {
     ElMessage.error(error?.response?.data?.detail || '创建任务失败')
@@ -94,20 +94,20 @@ async function handleCreateTask(row) {
 
 async function handleDelete(row) {
   try {
-    await ElMessageBox.confirm(`确认删除模板「${row.title}」？`, '删除模板', {
+    await ElMessageBox.confirm(`确认删除工作流「${row.title}」？`, '删除工作流', {
       type: 'warning',
       confirmButtonText: '删除',
       cancelButtonText: '取消'
     })
     await deleteTaskTemplate(row.id)
-    ElMessage.success('模板已删除')
+    ElMessage.success('工作流已删除')
     if (rows.value.length === 1 && pagination.page > 1) {
       pagination.page -= 1
     }
     await loadTemplates()
   } catch (error) {
     if (error !== 'cancel') {
-      ElMessage.error(error?.response?.data?.detail || '删除模板失败')
+      ElMessage.error(error?.response?.data?.detail || '删除工作流失败')
     }
   }
 }

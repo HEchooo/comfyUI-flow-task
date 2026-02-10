@@ -7,7 +7,7 @@
           <div class="page-subtitle">查看、检索并管理任务</div>
         </div>
         <div class="head-actions">
-          <el-button @click="$router.push('/templates')">任务模板</el-button>
+          <el-button @click="$router.push('/templates')">工作流</el-button>
           <el-button type="primary" @click="$router.push('/tasks/new')">新建任务</el-button>
         </div>
       </div>

@@ -18,13 +18,13 @@
         <el-input v-model="form.description" type="textarea" :rows="3" />
       </el-form-item>
 
-      <el-form-item v-if="!isEdit" label="应用模板">
+      <el-form-item v-if="!isEdit" label="应用工作流">
         <div class="template-tools">
-          <el-select v-model="selectedTemplateId" placeholder="选择任务模板" clearable class="template-select">
+          <el-select v-model="selectedTemplateId" placeholder="选择工作流" clearable class="template-select">
             <el-option v-for="item in templateOptions" :key="item.id" :label="item.title" :value="item.id" />
           </el-select>
-          <el-button :disabled="!selectedTemplateId" @click="applyTemplate">填充模板</el-button>
-          <el-button text type="primary" @click="$router.push('/templates')">管理模板</el-button>
+          <el-button :disabled="!selectedTemplateId" @click="applyTemplate">填充工作流</el-button>
+          <el-button text type="primary" @click="$router.push('/templates')">管理工作流</el-button>
         </div>
       </el-form-item>
 
@@ -164,7 +164,7 @@ async function loadTemplateOptions() {
     const result = await fetchTaskTemplates({ page: 1, page_size: 100 })
     templateOptions.value = result.items || []
   } catch (error) {
-    ElMessage.error(error?.response?.data?.detail || '加载模板列表失败')
+    ElMessage.error(error?.response?.data?.detail || '加载工作流列表失败')
   }
 }
 
@@ -190,9 +190,9 @@ async function applyTemplate() {
     if (!form.subtasks.length) {
       addSubtask()
     }
-    ElMessage.success('模板已填充，可继续补充图片后保存任务')
+    ElMessage.success('工作流已填充，可继续补充图片后保存任务')
   } catch (error) {
-    ElMessage.error(error?.response?.data?.detail || '应用模板失败')
+    ElMessage.error(error?.response?.data?.detail || '应用工作流失败')
   }
 }
 
