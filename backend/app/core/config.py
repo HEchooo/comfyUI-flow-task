@@ -11,7 +11,7 @@ class Settings(BaseSettings):
     admin_username: str = "admin"
     admin_password: str = "admin666"
     auth_secret: str = "change-me-in-production"
-    auth_token_expire_minutes: int = 480
+    auth_token_expire_minutes: int = 1440
     upload_api_base_url: str = "http://api.test-hot-product.echooo.link"
     log_level: str = "INFO"
 
