@@ -137,7 +137,7 @@ uv sync
 uv run alembic upgrade head
 
 # 2. 安装 systemd 服务
-sudo cp /opt/flow-task/deploy/systemd/flow-task.service /etc/systemd/system/flow-task.service
+sudo cp /home/dudewei/projects/comfyUI-flow-task/deploy/systemd/flow-task.service /etc/systemd/system/flow-task.service
 sudo systemctl daemon-reload
 sudo systemctl enable --now flow-task
 
