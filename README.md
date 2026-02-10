@@ -110,7 +110,7 @@ curl --location --request POST 'http://localhost:8000/api/v1/callbacks/subtask-s
 2. 按 `task_id` 查询任务详情（无需鉴权）
 
 ```bash
-curl --location --request GET 'http://localhost:8000/api/v1/tasks/11111111-2222-3333-4444-555555555555' \
+curl --location --request GET 'http://35.224.68.88:8000/api/v1/tasks/{task_id}' \
 --header 'Content-Type: application/json'
 ```
 

@@ -44,8 +44,23 @@
         </el-descriptions>
 
         <div class="result-panel" v-if="hasResult(item)">
-          <div class="result-title">子任务结果 JSON</div>
-          <pre class="result-json">{{ formatResult(item.result) }}</pre>
+          <div class="result-header">
+            <div class="result-title">子任务结果</div>
+            <el-button text type="primary" @click="openResultJson(item)">查看原始 JSON</el-button>
+          </div>
+
+          <div v-if="hasRawOutput(item)" class="raw-output-card">
+            <div class="raw-output-title">结果摘要</div>
+            <div class="raw-output-preview">{{ getRawOutputPreview(item) }}</div>
+            <el-button text type="primary" @click="openResultMarkdown(item.result.raw_output)">查看全文</el-button>
+          </div>
+
+          <div v-if="getStructuredResultEntries(item).length" class="result-kv-grid">
+            <div class="result-kv-item" v-for="[key, value] in getStructuredResultEntries(item)" :key="`${item.id}-${key}`">
+              <div class="result-kv-key">{{ key }}</div>
+              <pre class="result-kv-value">{{ formatResultValue(value) }}</pre>
+            </div>
+          </div>
         </div>
 
         <div v-if="hasPrompt(item)" class="prompt-list">
@@ -68,6 +83,10 @@
       <div class="markdown-body preview-dialog-body" v-if="previewDialog.html" v-html="previewDialog.html"></div>
       <el-empty v-else description="暂无内容" />
     </el-dialog>
+
+    <el-dialog v-model="resultJsonDialog.visible" :title="resultJsonDialog.title" width="min(820px, 94vw)" append-to-body>
+      <pre class="result-json-dialog">{{ resultJsonDialog.content }}</pre>
+    </el-dialog>
   </el-card>
 </template>
 
@@ -88,6 +107,11 @@ const previewDialog = reactive({
   visible: false,
   title: 'Markdown 预览',
   html: ''
+})
+const resultJsonDialog = reactive({
+  visible: false,
+  title: '子任务结果 JSON',
+  content: ''
 })
 
 function formatTime(value) {
@@ -114,12 +138,42 @@ function openPromptPreview(text, title) {
   previewDialog.visible = true
 }
 
+function openResultMarkdown(text) {
+  previewDialog.title = '子任务结果详情'
+  previewDialog.html = renderMarkdown(text || '')
+  previewDialog.visible = true
+}
+
 function hasResult(subtask) {
   return Boolean(subtask?.result && Object.keys(subtask.result).length)
 }
 
-function formatResult(result) {
-  return JSON.stringify(result, null, 2)
+function hasRawOutput(subtask) {
+  return Boolean(subtask?.result?.raw_output && String(subtask.result.raw_output).trim())
+}
+
+function getRawOutputPreview(subtask) {
+  const text = String(subtask?.result?.raw_output || '').replace(/\s+/g, ' ').trim()
+  if (!text) return ''
+  return text.length > 220 ? `${text.slice(0, 220)}...` : text
+}
+
+function getStructuredResultEntries(subtask) {
+  const entries = Object.entries(subtask?.result || {})
+  return entries.filter(([key]) => key !== 'raw_output')
+}
+
+function formatResultValue(value) {
+  if (value === null || value === undefined) return '-'
+  if (typeof value === 'string') return value
+  if (typeof value === 'number' || typeof value === 'boolean') return String(value)
+  return JSON.stringify(value, null, 2)
+}
+
+function openResultJson(subtask) {
+  resultJsonDialog.title = '子任务结果 JSON'
+  resultJsonDialog.content = JSON.stringify(subtask?.result || {}, null, 2)
+  resultJsonDialog.visible = true
 }
 
 async function loadData() {
@@ -211,10 +265,59 @@ onMounted(loadData)
   font-size: 12px;
   font-weight: 600;
   color: #496386;
+}
+
+.result-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  gap: 8px;
+}
+
+.raw-output-card {
+  border: 1px solid #dce8fb;
+  border-radius: 10px;
+  background: linear-gradient(180deg, #ffffff 0%, #f7fbff 100%);
+  padding: 10px;
+}
+
+.raw-output-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: #4b6488;
   margin-bottom: 6px;
 }
 
-.result-json {
+.raw-output-preview {
+  font-size: 13px;
+  line-height: 1.6;
+  color: #273f63;
+  margin-bottom: 6px;
+}
+
+.result-kv-grid {
+  margin-top: 10px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.result-kv-item {
+  border: 1px solid #dfebfb;
+  border-radius: 8px;
+  background: #fff;
+  padding: 8px;
+}
+
+.result-kv-key {
+  font-size: 12px;
+  font-weight: 600;
+  color: #526989;
+  margin-bottom: 6px;
+}
+
+.result-kv-value {
   margin: 0;
   font-size: 12px;
   line-height: 1.55;
@@ -279,6 +382,21 @@ onMounted(loadData)
   padding: 4px;
 }
 
+.result-json-dialog {
+  margin: 0;
+  max-height: 66vh;
+  overflow: auto;
+  font-size: 12px;
+  line-height: 1.6;
+  color: #1f3559;
+  background: #f7faff;
+  border: 1px solid #dce8fb;
+  border-radius: 8px;
+  padding: 10px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
 @keyframes rise {
   from {
     opacity: 0;
@@ -301,6 +419,10 @@ onMounted(loadData)
   }
 
   .prompt-list {
+    grid-template-columns: 1fr;
+  }
+
+  .result-kv-grid {
     grid-template-columns: 1fr;
   }
 }
