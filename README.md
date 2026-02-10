@@ -153,3 +153,44 @@ sudo systemctl restart flow-task
 sudo systemctl stop flow-task
 sudo systemctl start flow-task
 ```
+
+## 8）使用 systemctl 启动前端（服务名：flow-task-web）
+
+已提供 service 模板文件：
+
+- `deploy/systemd/flow-task-web.service`
+
+默认通过 `vite preview` 在 `5173` 端口提供前端页面。
+
+请先确认前端生产环境变量（用于打包时写入 API 地址）：
+
+```bash
+cd /home/dudewei/projects/comfyUI-flow-task/frontend
+cat > .env.production << 'EOF'
+VITE_API_BASE_URL=http://127.0.0.1:8000/api/v1
+EOF
+npm install
+```
+
+安装并启动前端服务：
+
+```bash
+sudo cp /home/dudewei/projects/comfyUI-flow-task/deploy/systemd/flow-task-web.service /etc/systemd/system/flow-task-web.service
+sudo systemctl daemon-reload
+sudo systemctl enable --now flow-task-web
+```
+
+查看状态与日志：
+
+```bash
+sudo systemctl status flow-task-web
+sudo journalctl -u flow-task-web -f
+```
+
+常用命令：
+
+```bash
+sudo systemctl restart flow-task-web
+sudo systemctl stop flow-task-web
+sudo systemctl start flow-task-web
+```
