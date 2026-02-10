@@ -113,3 +113,43 @@ curl --location --request POST 'http://localhost:8000/api/v1/callbacks/subtask-s
 curl --location --request GET 'http://localhost:8000/api/v1/tasks/11111111-2222-3333-4444-555555555555' \
 --header 'Content-Type: application/json'
 ```
+
+## 7）使用 systemctl 启动后端（服务名：flow-task）
+
+已提供 service 模板文件：
+
+- `deploy/systemd/flow-task.service`
+
+请先按你的服务器实际路径修改该文件中的以下字段：
+
+- `User` / `Group`
+- `WorkingDirectory`
+- `EnvironmentFile`
+- `ExecStart`
+
+示例部署步骤（Linux）：
+
+```bash
+# 1. 代码部署后，先准备后端依赖与数据库
+cd /opt/flow-task/backend
+cp .env.example .env
+uv sync
+uv run alembic upgrade head
+
+# 2. 安装 systemd 服务
+sudo cp /opt/flow-task/deploy/systemd/flow-task.service /etc/systemd/system/flow-task.service
+sudo systemctl daemon-reload
+sudo systemctl enable --now flow-task
+
+# 3. 查看运行状态
+sudo systemctl status flow-task
+sudo journalctl -u flow-task -f
+```
+
+常用命令：
+
+```bash
+sudo systemctl restart flow-task
+sudo systemctl stop flow-task
+sudo systemctl start flow-task
+```

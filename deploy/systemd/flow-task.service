@@ -1,0 +1,17 @@
+[Unit]
+Description=Flow Task Backend Service
+After=network.target
+
+[Service]
+Type=simple
+User=dudewei
+Group=dudewei
+WorkingDirectory=/home/dudewei/projects/comfyUI-flow-task/backend
+EnvironmentFile=/home/dudewei/projects/comfyUI-flow-task/backend.env
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/home/dudewei/projects/comfyUI-flow-task/backend/.venv/bin/uvicorn app.main:app --host 0.0.0.0 --port 8000
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target
