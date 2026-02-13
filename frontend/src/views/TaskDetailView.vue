@@ -72,16 +72,32 @@
         </div>
 
         <div class="photo-grid">
-          <div class="photo-card" v-for="photo in item.photos" :key="photo.id">
-            <img :src="photo.url" alt="photo" />
+          <div class="photo-card" v-for="(photo, photoIndex) in item.photos" :key="photo.id">
+            <el-image
+              class="preview-image"
+              :src="photo.url"
+              fit="contain"
+              :preview-src-list="getPhotoUrls(item)"
+              :initial-index="photoIndex"
+              preview-teleported
+              hide-on-click-modal
+            />
           </div>
         </div>
 
         <div class="generated-section">
           <div class="generated-title">生图结果</div>
           <div class="photo-grid" v-if="getGeneratedImages(item).length">
-            <div class="photo-card generated-photo-card" v-for="image in getGeneratedImages(item)" :key="image.id">
-              <img :src="image.url" alt="generated-image" />
+            <div class="photo-card generated-photo-card" v-for="(image, imageIndex) in getGeneratedImages(item)" :key="image.id">
+              <el-image
+                class="preview-image"
+                :src="image.url"
+                fit="contain"
+                :preview-src-list="getGeneratedImageUrls(item)"
+                :initial-index="imageIndex"
+                preview-teleported
+                hide-on-click-modal
+              />
               <div class="sort-chip">#{{ image.sort_order }}</div>
             </div>
           </div>
@@ -192,6 +208,15 @@ function openResultJson(subtask) {
 function getGeneratedImages(subtask) {
   const items = Array.isArray(subtask?.generated_images) ? subtask.generated_images : []
   return [...items].sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))
+}
+
+function getPhotoUrls(subtask) {
+  const items = Array.isArray(subtask?.photos) ? subtask.photos : []
+  return items.map((item) => item.url).filter(Boolean)
+}
+
+function getGeneratedImageUrls(subtask) {
+  return getGeneratedImages(subtask).map((item) => item.url).filter(Boolean)
 }
 
 async function loadData() {
@@ -390,13 +415,18 @@ onMounted(loadData)
   border-radius: 8px;
   padding: 6px;
   background: #fff;
+  height: 188px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.photo-card img {
+.preview-image {
   width: 100%;
-  height: 100px;
-  object-fit: cover;
+  height: 100%;
   border-radius: 6px;
+  overflow: hidden;
+  background: #f2f6ff;
 }
 
 .generated-section {
