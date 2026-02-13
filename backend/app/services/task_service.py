@@ -9,10 +9,11 @@ from sqlalchemy.orm import selectinload
 
 from app.core.config import settings
 from app.models.enums import TaskStatus
+from app.models.generated_image import SubTaskGeneratedImage
 from app.models.photo import SubTaskPhoto
 from app.models.subtask import SubTask
 from app.models.task import Task
-from app.schemas.task import SubTaskCreate, SubTaskUpdate, TaskCreate, TaskPatch
+from app.schemas.task import CallbackGeneratedImageItem, SubTaskCreate, SubTaskUpdate, TaskCreate, TaskPatch
 from app.services.status import aggregate_parent_status, ensure_transition
 
 
@@ -20,7 +21,10 @@ def _task_detail_query(task_id: UUID) -> Select[tuple[Task]]:
     return (
         select(Task)
         .where(Task.id == task_id)
-        .options(selectinload(Task.subtasks).selectinload(SubTask.photos))
+        .options(
+            selectinload(Task.subtasks).selectinload(SubTask.photos),
+            selectinload(Task.subtasks).selectinload(SubTask.generated_images),
+        )
     )
 
 
@@ -40,7 +44,11 @@ async def get_task_or_404(session: AsyncSession, task_id: UUID) -> Task:
 
 
 async def get_subtask_or_404(session: AsyncSession, subtask_id: UUID) -> SubTask:
-    stmt = select(SubTask).where(SubTask.id == subtask_id).options(selectinload(SubTask.photos))
+    stmt = (
+        select(SubTask)
+        .where(SubTask.id == subtask_id)
+        .options(selectinload(SubTask.photos), selectinload(SubTask.generated_images))
+    )
     subtask = await session.scalar(stmt)
     if not subtask:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Subtask not found")
@@ -272,5 +280,32 @@ async def patch_subtask_status(
         subtask.extra = extra
 
     await _sync_parent_status(session, subtask.task_id)
+    await session.commit()
+    return await get_subtask_or_404(session, subtask.id)
+
+
+async def replace_subtask_generated_images(
+    session: AsyncSession,
+    *,
+    subtask: SubTask,
+    images: list[CallbackGeneratedImageItem],
+) -> SubTask:
+    await session.execute(delete(SubTaskGeneratedImage).where(SubTaskGeneratedImage.subtask_id == subtask.id))
+
+    if images:
+        ordered = sorted(images, key=lambda item: item.sort_order)
+        session.add_all(
+            [
+                SubTaskGeneratedImage(
+                    subtask_id=subtask.id,
+                    url=item.url,
+                    object_key=item.object_key,
+                    sort_order=item.sort_order,
+                    extra=item.extra,
+                )
+                for item in ordered
+            ]
+        )
+
     await session.commit()
     return await get_subtask_or_404(session, subtask.id)

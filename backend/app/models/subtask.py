@@ -33,3 +33,9 @@ class SubTask(Base):
 
     task = relationship("Task", back_populates="subtasks")
     photos = relationship("SubTaskPhoto", back_populates="subtask", cascade="all, delete-orphan")
+    generated_images = relationship(
+        "SubTaskGeneratedImage",
+        back_populates="subtask",
+        cascade="all, delete-orphan",
+        order_by="SubTaskGeneratedImage.sort_order",
+    )

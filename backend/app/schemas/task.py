@@ -21,6 +21,19 @@ class PhotoRead(PhotoBase):
     model_config = ConfigDict(from_attributes=True)
 
 
+class GeneratedImageBase(BaseModel):
+    url: str
+    object_key: str | None = None
+    sort_order: int = 0
+    extra: dict = Field(default_factory=dict)
+
+
+class GeneratedImageRead(GeneratedImageBase):
+    id: UUID
+    created_at: datetime
+    model_config = ConfigDict(from_attributes=True)
+
+
 class SubTaskBase(BaseModel):
     platform: str = Field(min_length=1, max_length=50)
     account_name: str = Field(min_length=1, max_length=100)
@@ -50,6 +63,7 @@ class SubTaskRead(SubTaskBase):
     created_at: datetime
     updated_at: datetime
     photos: list[PhotoRead] = Field(default_factory=list)
+    generated_images: list[GeneratedImageRead] = Field(default_factory=list)
     model_config = ConfigDict(from_attributes=True)
 
 
@@ -139,6 +153,25 @@ class CallbackSubTaskStatusResponse(BaseModel):
     task_id: UUID
     task_status: TaskStatus
     result: dict
+
+
+class CallbackGeneratedImageItem(BaseModel):
+    url: str = Field(min_length=1)
+    object_key: str | None = None
+    sort_order: int = Field(default=0, ge=0)
+    extra: dict = Field(default_factory=dict)
+
+
+class CallbackSubTaskGeneratedImagesRequest(BaseModel):
+    subtask_id: UUID
+    images: list[CallbackGeneratedImageItem] = Field(default_factory=list)
+
+
+class CallbackSubTaskGeneratedImagesResponse(BaseModel):
+    subtask_id: UUID
+    task_id: UUID
+    saved_count: int
+    images: list[GeneratedImageRead] = Field(default_factory=list)
 
 
 class TemplateSubTaskBase(BaseModel):

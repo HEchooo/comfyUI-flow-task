@@ -80,6 +80,7 @@ npm run dev
 回调接口（免鉴权）：
 
 - `POST /api/v1/callbacks/subtask-status`
+- `POST /api/v1/callbacks/subtask-generated-images`
 
 ## 5）鉴权说明
 
@@ -107,7 +108,32 @@ curl --location --request POST 'http://localhost:8000/api/v1/callbacks/subtask-s
 }'
 ```
 
-2. 按 `task_id` 查询任务详情（无需鉴权）
+2. 子任务生图结果回调（免鉴权，覆盖写入并按 `sort_order` 排序）
+
+```bash
+curl --location --request POST 'http://localhost:8000/api/v1/callbacks/subtask-generated-images' \
+--header 'Content-Type: application/json' \
+--data '{
+  "subtask_id": "11111111-2222-3333-4444-555555555555",
+  "images": [
+    {
+      "url": "https://example.com/generated_1.png",
+      "object_key": "comfy/result/generated_1.png",
+      "sort_order": 0,
+      "extra": {
+        "seed": 12345,
+        "step": 30
+      }
+    },
+    {
+      "url": "https://example.com/generated_2.png",
+      "sort_order": 1
+    }
+  ]
+}'
+```
+
+3. 按 `task_id` 查询任务详情（无需鉴权，返回中包含每个子任务的 `generated_images`）
 
 ```bash
 curl --location --request GET 'http://35.224.68.88:8000/api/v1/tasks/{task_id}' \

@@ -76,6 +76,17 @@
             <img :src="photo.url" alt="photo" />
           </div>
         </div>
+
+        <div class="generated-section">
+          <div class="generated-title">生图结果</div>
+          <div class="photo-grid" v-if="getGeneratedImages(item).length">
+            <div class="photo-card generated-photo-card" v-for="image in getGeneratedImages(item)" :key="image.id">
+              <img :src="image.url" alt="generated-image" />
+              <div class="sort-chip">#{{ image.sort_order }}</div>
+            </div>
+          </div>
+          <el-empty v-else description="暂无生图结果" :image-size="60" />
+        </div>
       </el-card>
     </template>
 
@@ -176,6 +187,11 @@ function openResultJson(subtask) {
   resultJsonDialog.title = '子任务结果 JSON'
   resultJsonDialog.content = JSON.stringify(subtask?.result || {}, null, 2)
   resultJsonDialog.visible = true
+}
+
+function getGeneratedImages(subtask) {
+  const items = Array.isArray(subtask?.generated_images) ? subtask.generated_images : []
+  return [...items].sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))
 }
 
 async function loadData() {
@@ -381,6 +397,34 @@ onMounted(loadData)
   height: 100px;
   object-fit: cover;
   border-radius: 6px;
+}
+
+.generated-section {
+  margin-top: 10px;
+  border-top: 1px dashed #d8e6fb;
+  padding-top: 10px;
+}
+
+.generated-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: #3e5e88;
+  margin-bottom: 8px;
+}
+
+.generated-photo-card {
+  position: relative;
+}
+
+.sort-chip {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  font-size: 11px;
+  color: #fff;
+  background: rgba(17, 24, 39, 0.78);
+  border-radius: 999px;
+  padding: 1px 6px;
 }
 
 .preview-dialog-body {
