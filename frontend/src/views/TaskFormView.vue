@@ -23,7 +23,7 @@
           <el-select v-model="selectedTemplateId" placeholder="选择工作流" clearable class="template-select">
             <el-option v-for="item in templateOptions" :key="item.id" :label="item.title" :value="item.id" />
           </el-select>
-          <el-button :disabled="!selectedTemplateId" @click="applyTemplate">填充工作流</el-button>
+          <el-button :loading="applyingTemplate" :disabled="!selectedTemplateId || applyingTemplate" @click="applyTemplate">填充工作流</el-button>
           <el-button text type="primary" @click="$router.push('/templates')">管理工作流</el-button>
         </div>
       </el-form-item>
@@ -121,6 +121,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { ElLoading, ElMessage } from 'element-plus'
 
 import PhotoInput from '../components/PhotoInput.vue'
+import { isDuplicateRequestError } from '../api/http'
 import { createTask, fetchTask, patchTask, uploadImageByFile } from '../api/tasks'
 import { fetchTaskTemplate, fetchTaskTemplates } from '../api/templates'
 import { renderMarkdown } from '../utils/markdown'
@@ -128,6 +129,7 @@ import { renderMarkdown } from '../utils/markdown'
 const route = useRoute()
 const router = useRouter()
 const submitting = ref(false)
+const applyingTemplate = ref(false)
 
 const form = reactive({
   title: '',
@@ -164,6 +166,7 @@ async function loadTemplateOptions() {
     const result = await fetchTaskTemplates({ page: 1, page_size: 100 })
     templateOptions.value = result.items || []
   } catch (error) {
+    if (isDuplicateRequestError(error)) return
     ElMessage.error(error?.response?.data?.detail || '加载工作流列表失败')
   }
 }
@@ -181,7 +184,8 @@ function mapTemplateSubtask(item) {
 }
 
 async function applyTemplate() {
-  if (!selectedTemplateId.value) return
+  if (!selectedTemplateId.value || applyingTemplate.value) return
+  applyingTemplate.value = true
   try {
     const template = await fetchTaskTemplate(selectedTemplateId.value)
     form.title = template.title
@@ -192,7 +196,10 @@ async function applyTemplate() {
     }
     ElMessage.success('工作流已填充，可继续补充图片后保存任务')
   } catch (error) {
+    if (isDuplicateRequestError(error)) return
     ElMessage.error(error?.response?.data?.detail || '应用工作流失败')
+  } finally {
+    applyingTemplate.value = false
   }
 }
 
@@ -348,11 +355,13 @@ async function loadDetail() {
       extra: item.extra || {}
     }))
   } catch (error) {
+    if (isDuplicateRequestError(error)) return
     ElMessage.error(error?.response?.data?.detail || '加载任务失败')
   }
 }
 
 async function submit() {
+  if (submitting.value) return
   if (!form.title.trim()) {
     ElMessage.warning('标题不能为空')
     return
@@ -375,6 +384,7 @@ async function submit() {
     }
     router.push(`/tasks/${saved.id}`)
   } catch (error) {
+    if (isDuplicateRequestError(error)) return
     ElMessage.error(error?.response?.data?.detail || '保存失败')
   } finally {
     submitting.value = false

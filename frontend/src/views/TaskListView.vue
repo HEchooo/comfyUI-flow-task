@@ -18,7 +18,7 @@
       <el-select v-model="filters.status" placeholder="状态筛选" clearable class="status-filter">
         <el-option v-for="item in TASK_STATUS_OPTIONS" :key="item.value" :label="item.label" :value="item.value" />
       </el-select>
-      <el-button type="primary" @click="loadTasks">查询</el-button>
+      <el-button type="primary" :loading="loading" :disabled="loading" @click="loadTasks">查询</el-button>
     </div>
 
     <el-table :data="rows" v-loading="loading" border class="task-table">
@@ -35,9 +35,17 @@
       </el-table-column>
       <el-table-column label="操作" width="220" fixed="right">
         <template #default="scope">
-          <el-button link type="primary" @click="$router.push(`/tasks/${scope.row.id}`)">详情</el-button>
-          <el-button link @click="$router.push(`/tasks/${scope.row.id}/edit`)">编辑</el-button>
-          <el-button link type="danger" @click="handleDelete(scope.row)">删除</el-button>
+          <el-button link type="primary" :disabled="loading || deletingTaskId === scope.row.id" @click="$router.push(`/tasks/${scope.row.id}`)">详情</el-button>
+          <el-button link :disabled="loading || deletingTaskId === scope.row.id" @click="$router.push(`/tasks/${scope.row.id}/edit`)">编辑</el-button>
+          <el-button
+            link
+            type="danger"
+            :loading="deletingTaskId === scope.row.id"
+            :disabled="loading || deletingTaskId === scope.row.id"
+            @click="handleDelete(scope.row)"
+          >
+            删除
+          </el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -60,9 +68,11 @@ import { onMounted, reactive, ref } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
 import { deleteTask, fetchTasks } from '../api/tasks'
+import { isDuplicateRequestError } from '../api/http'
 import { TASK_STATUS_OPTIONS, taskStatusType } from '../utils/status'
 const loading = ref(false)
 const rows = ref([])
+const deletingTaskId = ref('')
 
 const filters = reactive({
   taskId: '',
@@ -92,6 +102,7 @@ async function loadTasks() {
     rows.value = result.items
     pagination.total = result.total
   } catch (error) {
+    if (isDuplicateRequestError(error)) return
     ElMessage.error(error?.response?.data?.detail || '任务查询失败')
   } finally {
     loading.value = false
@@ -117,6 +128,7 @@ async function handleDelete(row) {
       }
     )
 
+    deletingTaskId.value = row.id
     await deleteTask(row.id)
     ElMessage.success('任务已删除')
     if (rows.value.length === 1 && pagination.page > 1) {
@@ -124,9 +136,12 @@ async function handleDelete(row) {
     }
     await loadTasks()
   } catch (error) {
+    if (isDuplicateRequestError(error)) return
     if (error !== 'cancel') {
       ElMessage.error(error?.response?.data?.detail || '删除失败')
     }
+  } finally {
+    deletingTaskId.value = ''
   }
 }
 

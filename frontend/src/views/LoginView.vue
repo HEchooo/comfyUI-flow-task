@@ -26,6 +26,7 @@ import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 
+import { isDuplicateRequestError } from '../api/http'
 import { login } from '../api/auth'
 
 const router = useRouter()
@@ -36,6 +37,7 @@ const form = reactive({
 })
 
 async function submit() {
+  if (submitting.value) return
   if (!form.username || !form.password) {
     ElMessage.warning('请输入账号和密码')
     return
@@ -49,6 +51,7 @@ async function submit() {
     ElMessage.success('登录成功')
     router.replace('/')
   } catch (error) {
+    if (isDuplicateRequestError(error)) return
     ElMessage.error(error?.response?.data?.detail || '登录失败')
   } finally {
     submitting.value = false

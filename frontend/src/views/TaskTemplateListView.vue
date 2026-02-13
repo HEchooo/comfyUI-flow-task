@@ -6,7 +6,7 @@
           <div class="page-title">工作流</div>
           <div class="page-subtitle">维护可复用工作流并快速生成任务</div>
         </div>
-        <el-button type="primary" @click="$router.push('/templates/new')">新建工作流</el-button>
+        <el-button type="primary" :disabled="loading" @click="$router.push('/templates/new')">新建工作流</el-button>
       </div>
     </template>
 
@@ -19,9 +19,31 @@
       </el-table-column>
       <el-table-column label="操作" width="300" fixed="right">
         <template #default="scope">
-          <el-button link type="primary" @click="handleCreateTask(scope.row)">创建任务</el-button>
-          <el-button link @click="$router.push(`/templates/${scope.row.id}/edit`)">编辑</el-button>
-          <el-button link type="danger" @click="handleDelete(scope.row)">删除</el-button>
+          <el-button
+            link
+            type="primary"
+            :loading="creatingTaskFromTemplateId === scope.row.id"
+            :disabled="loading || creatingTaskFromTemplateId === scope.row.id || deletingTemplateId === scope.row.id"
+            @click="handleCreateTask(scope.row)"
+          >
+            创建任务
+          </el-button>
+          <el-button
+            link
+            :disabled="loading || creatingTaskFromTemplateId === scope.row.id || deletingTemplateId === scope.row.id"
+            @click="$router.push(`/templates/${scope.row.id}/edit`)"
+          >
+            编辑
+          </el-button>
+          <el-button
+            link
+            type="danger"
+            :loading="deletingTemplateId === scope.row.id"
+            :disabled="loading || deletingTemplateId === scope.row.id || creatingTaskFromTemplateId === scope.row.id"
+            @click="handleDelete(scope.row)"
+          >
+            删除
+          </el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -45,10 +67,13 @@ import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
 import { createTaskFromTemplate, deleteTaskTemplate, fetchTaskTemplates } from '../api/templates'
+import { isDuplicateRequestError } from '../api/http'
 
 const router = useRouter()
 const loading = ref(false)
 const rows = ref([])
+const creatingTaskFromTemplateId = ref('')
+const deletingTemplateId = ref('')
 
 const pagination = reactive({
   page: 1,
@@ -71,6 +96,7 @@ async function loadTemplates() {
     rows.value = result.items
     pagination.total = result.total
   } catch (error) {
+    if (isDuplicateRequestError(error)) return
     ElMessage.error(error?.response?.data?.detail || '工作流查询失败')
   } finally {
     loading.value = false
@@ -84,11 +110,15 @@ function onPageChange(page) {
 
 async function handleCreateTask(row) {
   try {
+    creatingTaskFromTemplateId.value = row.id
     const created = await createTaskFromTemplate(row.id, {})
     ElMessage.success('已从工作流创建任务')
     router.push(`/tasks/${created.id}/edit`)
   } catch (error) {
+    if (isDuplicateRequestError(error)) return
     ElMessage.error(error?.response?.data?.detail || '创建任务失败')
+  } finally {
+    creatingTaskFromTemplateId.value = ''
   }
 }
 
@@ -99,6 +129,7 @@ async function handleDelete(row) {
       confirmButtonText: '删除',
       cancelButtonText: '取消'
     })
+    deletingTemplateId.value = row.id
     await deleteTaskTemplate(row.id)
     ElMessage.success('工作流已删除')
     if (rows.value.length === 1 && pagination.page > 1) {
@@ -106,9 +137,12 @@ async function handleDelete(row) {
     }
     await loadTemplates()
   } catch (error) {
+    if (isDuplicateRequestError(error)) return
     if (error !== 'cancel') {
       ElMessage.error(error?.response?.data?.detail || '删除工作流失败')
     }
+  } finally {
+    deletingTemplateId.value = ''
   }
 }
 

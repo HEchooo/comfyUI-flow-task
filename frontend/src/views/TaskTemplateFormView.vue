@@ -106,6 +106,7 @@ import { computed, onMounted, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 
+import { isDuplicateRequestError } from '../api/http'
 import { createTaskTemplate, fetchTaskTemplate, patchTaskTemplate } from '../api/templates'
 import { renderMarkdown } from '../utils/markdown'
 
@@ -231,11 +232,13 @@ async function loadDetail() {
       extra: item.extra || {}
     }))
   } catch (error) {
+    if (isDuplicateRequestError(error)) return
     ElMessage.error(error?.response?.data?.detail || '加载工作流失败')
   }
 }
 
 async function submit() {
+  if (submitting.value) return
   if (!form.title.trim()) {
     ElMessage.warning('工作流名称不能为空')
     return
@@ -255,6 +258,7 @@ async function submit() {
     }
     router.push('/templates')
   } catch (error) {
+    if (isDuplicateRequestError(error)) return
     ElMessage.error(error?.response?.data?.detail || '保存工作流失败')
   } finally {
     submitting.value = false

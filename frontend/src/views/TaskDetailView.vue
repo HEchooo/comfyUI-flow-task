@@ -8,7 +8,7 @@
         </div>
         <div class="actions">
           <el-button @click="$router.push('/')">返回列表</el-button>
-          <el-button type="danger" plain :disabled="!task.id" @click="handleDelete">删除</el-button>
+          <el-button type="danger" plain :loading="deleting" :disabled="!task.id || deleting" @click="handleDelete">删除</el-button>
           <el-button type="primary" @click="$router.push(`/tasks/${task.id}/edit`)" :disabled="!task.id">编辑</el-button>
         </div>
       </div>
@@ -96,12 +96,14 @@ import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
 import { deleteTask, fetchTask } from '../api/tasks'
+import { isDuplicateRequestError } from '../api/http'
 import { renderMarkdown } from '../utils/markdown'
 import { taskStatusType } from '../utils/status'
 
 const route = useRoute()
 const router = useRouter()
 const loading = ref(false)
+const deleting = ref(false)
 const task = reactive({})
 const previewDialog = reactive({
   visible: false,
@@ -182,6 +184,7 @@ async function loadData() {
     const result = await fetchTask(route.params.id)
     Object.assign(task, result)
   } catch (error) {
+    if (isDuplicateRequestError(error)) return
     ElMessage.error(error?.response?.data?.detail || '加载失败')
   } finally {
     loading.value = false
@@ -201,13 +204,17 @@ async function handleDelete() {
         cancelButtonText: '取消'
       }
     )
+    deleting.value = true
     await deleteTask(task.id)
     ElMessage.success('任务已删除')
     router.replace('/')
   } catch (error) {
+    if (isDuplicateRequestError(error)) return
     if (error !== 'cancel') {
       ElMessage.error(error?.response?.data?.detail || '删除失败')
     }
+  } finally {
+    deleting.value = false
   }
 }
 
