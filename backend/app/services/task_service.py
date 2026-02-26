@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import copy
 from uuid import UUID
 
 from fastapi import HTTPException, status
@@ -15,6 +16,40 @@ from app.models.subtask import SubTask
 from app.models.task import Task
 from app.schemas.task import CallbackGeneratedImageItem, SubTaskCreate, SubTaskUpdate, TaskCreate, TaskPatch
 from app.services.status import aggregate_parent_status, ensure_transition
+
+
+def bind_task_id_to_workflow(workflow_json: dict | None, task_id: UUID) -> tuple[dict | None, bool, int]:
+    """
+    Inject task_id into every GetTaskInfoNode in workflow JSON.
+
+    Returns:
+        (workflow_after_bind, changed, matched_node_count)
+    """
+    if workflow_json is None:
+        return None, False, 0
+    if not isinstance(workflow_json, dict):
+        return workflow_json, False, 0
+
+    updated = copy.deepcopy(workflow_json)
+    changed = False
+    matched_node_count = 0
+    task_id_str = str(task_id)
+
+    for node in updated.values():
+        if not isinstance(node, dict):
+            continue
+        if str(node.get("class_type") or "") != "GetTaskInfoNode":
+            continue
+        matched_node_count += 1
+        inputs = node.get("inputs")
+        if not isinstance(inputs, dict):
+            inputs = {}
+            node["inputs"] = inputs
+        if str(inputs.get("task_id") or "") != task_id_str:
+            inputs["task_id"] = task_id_str
+            changed = True
+
+    return updated, changed, matched_node_count
 
 
 def _task_detail_query(task_id: UUID) -> Select[tuple[Task]]:
@@ -113,9 +148,11 @@ async def create_task(session: AsyncSession, payload: TaskCreate) -> Task:
         status=TaskStatus.pending,
         extra=payload.extra,
         workflow_json=payload.workflow_json,
+        workflow_filename=payload.workflow_filename,
     )
     session.add(task)
     await session.flush()
+    task.workflow_json, _, _ = bind_task_id_to_workflow(task.workflow_json, task.id)
 
     await _insert_subtasks(session, task_id=task.id, payload_subtasks=payload.subtasks)
     await _sync_parent_status(session, task.id)
@@ -206,7 +243,11 @@ async def patch_task(session: AsyncSession, task: Task, payload: TaskPatch) -> T
         task.extra = payload.extra
         changed = True
     if payload.workflow_json is not None:
-        task.workflow_json = payload.workflow_json
+        bound_workflow_json, _, _ = bind_task_id_to_workflow(payload.workflow_json, task.id)
+        task.workflow_json = bound_workflow_json
+        changed = True
+    if payload.workflow_filename is not None:
+        task.workflow_filename = payload.workflow_filename
         changed = True
 
     if payload.subtasks is not None:

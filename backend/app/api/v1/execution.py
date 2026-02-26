@@ -15,7 +15,7 @@ from app.db.session import SessionLocal, get_db
 from app.models.enums import TaskStatus
 from app.models.task import Task
 from app.services.comfyui_service import ComfyEvent, interrupt_execution, listen_comfyui_ws, submit_prompt
-from app.services.task_service import get_task_or_404
+from app.services.task_service import bind_task_id_to_workflow, get_task_or_404
 
 router = APIRouter(prefix="/execution", tags=["execution"])
 logger = logging.getLogger("app.execution")
@@ -248,22 +248,30 @@ async def execute_task(
     session: AsyncSession = Depends(get_db),
 ) -> ExecuteTaskResponse:
     task = await get_task_or_404(session, task_id)
+    workflow_json, workflow_changed, matched_node_count = bind_task_id_to_workflow(task.workflow_json, task.id)
+    if workflow_changed:
+        task.workflow_json = workflow_json
+        logger.info(
+            "GetTaskInfoNode task_id bound before execute: task_id=%s matched_nodes=%s",
+            task_id,
+            matched_node_count,
+        )
     if task.status == TaskStatus.running:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail="Task is already running",
         )
 
-    node_count = len(task.workflow_json) if isinstance(task.workflow_json, dict) else 0
+    node_count = len(workflow_json) if isinstance(workflow_json, dict) else 0
     logger.info(
         "Execute task requested: task_id=%s status=%s has_workflow=%s node_count=%s",
         task_id,
         task.status.value if task.status else None,
-        bool(task.workflow_json),
+        bool(workflow_json),
         node_count,
     )
 
-    if not task.workflow_json:
+    if not workflow_json:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Task has no workflow JSON. Upload a workflow before executing.",
@@ -287,7 +295,7 @@ async def execute_task(
     logger.info("Task marked running on execute request: task_id=%s", task_id)
 
     initial_state = _new_execution_state(task_id_str, status_value=TaskStatus.running.value)
-    initial_state["_node_map"] = _build_workflow_node_map(task.workflow_json)
+    initial_state["_node_map"] = _build_workflow_node_map(workflow_json)
     _execution_states[task_id_str] = initial_state
     _append_event_log(task_id_str, "执行请求已提交，等待 ComfyUI 响应…", "info")
     _mark_execution_state_dirty(task_id_str)
@@ -315,7 +323,7 @@ async def execute_task(
         )
 
     # Submit to ComfyUI
-    result = await submit_prompt(task.workflow_json, client_id=client_id)
+    result = await submit_prompt(workflow_json, client_id=client_id)
     logger.info(
         "ComfyUI submit result: task_id=%s prompt_id=%s error=%s",
         task_id,
@@ -329,7 +337,7 @@ async def execute_task(
         state = _execution_states.get(task_id_str)
         if state is None:
             fail_state = _new_execution_state(task_id_str, status_value=TaskStatus.fail.value)
-            fail_state["_node_map"] = _build_workflow_node_map(task.workflow_json)
+            fail_state["_node_map"] = _build_workflow_node_map(workflow_json)
             _execution_states[task_id_str] = fail_state
             state = _execution_states[task_id_str]
         state["status"] = TaskStatus.fail.value
@@ -354,7 +362,7 @@ async def execute_task(
         state = _execution_states.get(task_id_str)
         if state is None:
             fail_state = _new_execution_state(task_id_str, status_value=TaskStatus.fail.value)
-            fail_state["_node_map"] = _build_workflow_node_map(task.workflow_json)
+            fail_state["_node_map"] = _build_workflow_node_map(workflow_json)
             _execution_states[task_id_str] = fail_state
             state = _execution_states[task_id_str]
         state["status"] = TaskStatus.fail.value
@@ -378,7 +386,7 @@ async def execute_task(
     state = _execution_states.get(task_id_str)
     if state is None:
         running_state = _new_execution_state(task_id_str, status_value=TaskStatus.running.value)
-        running_state["_node_map"] = _build_workflow_node_map(task.workflow_json)
+        running_state["_node_map"] = _build_workflow_node_map(workflow_json)
         _execution_states[task_id_str] = running_state
         state = _execution_states[task_id_str]
     state["status"] = TaskStatus.running.value

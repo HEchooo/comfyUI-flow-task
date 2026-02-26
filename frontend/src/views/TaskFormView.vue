@@ -29,7 +29,7 @@
       </el-form-item>
 
       <el-form-item label="ComfyUI 工作流">
-        <WorkflowUpload v-model="form.workflow_json" />
+        <WorkflowUpload v-model="form.workflow_json" v-model:filename="form.workflow_filename" />
       </el-form-item>
 
       <div class="subtask-header">
@@ -140,6 +140,7 @@ const form = reactive({
   title: '',
   description: '',
   workflow_json: null,
+  workflow_filename: '',
   subtasks: []
 })
 const templateOptions = ref([])
@@ -197,6 +198,7 @@ async function applyTemplate() {
     form.title = template.title
     form.description = template.description || ''
     form.workflow_json = template.workflow_json || null
+    form.workflow_filename = ''
     form.subtasks = (template.subtasks || []).map(mapTemplateSubtask)
     if (!form.subtasks.length) {
       addSubtask()
@@ -236,6 +238,7 @@ function normalizePayload() {
     title: form.title,
     description: form.description,
     workflow_json: form.workflow_json || null,
+    workflow_filename: form.workflow_filename || null,
     subtasks: form.subtasks.map((item) => ({
       platform: item.platform,
       account_name: item.account_name,
@@ -354,6 +357,7 @@ async function loadDetail() {
     form.title = data.title
     form.description = data.description || ''
     form.workflow_json = data.workflow_json || null
+    form.workflow_filename = data.workflow_filename || ''
     form.subtasks = data.subtasks.map((item) => ({
       platform: item.platform,
       account_name: item.account_name,

@@ -5167,3 +5167,607 @@ sqlalchemy.exc.DBAPIError: (sqlalchemy.dialects.postgresql.asyncpg.Error) <class
 2026-02-26 19:36:42,216 | INFO | app.execution | Execution event relayed: task_id=5dbaba03-328d-4176-904a-9eb9eff471aa type=executing prompt_id=c5207a6f-65d7-4c6c-8f97-02c4449fcd1d node_id=None
 2026-02-26 19:36:42,217 | INFO | app.execution | All prompts completed for task 5dbaba03-328d-4176-904a-9eb9eff471aa
 2026-02-26 19:36:42,220 | INFO | app.execution | Finalizing task: task_id=5dbaba03-328d-4176-904a-9eb9eff471aa final_status=success completed_prompt_ids=['c5207a6f-65d7-4c6c-8f97-02c4449fcd1d']
+2026-02-26 20:16:16,167 | INFO | app.execution | WS client disconnected for task 5dbaba03-328d-4176-904a-9eb9eff471aa
+2026-02-26 20:16:16,185 | INFO | uvicorn.error | connection closed
+2026-02-26 20:16:17,174 | INFO | app | [ee9b89a7] OPTIONS /api/v1/tasks?page=1&page_size=10 -> 200 (17.56ms)
+2026-02-26 20:16:17,176 | INFO | uvicorn.access | 127.0.0.1:51589 - "OPTIONS /api/v1/tasks?page=1&page_size=10 HTTP/1.1" 200
+2026-02-26 20:16:17,302 | INFO | app.tasks | list_tasks filters: task_id=None status=None page=1 page_size=10 -> items=2 total=2
+2026-02-26 20:16:17,309 | INFO | app | [623d20fe] GET /api/v1/tasks?page=1&page_size=10 -> 200 (129.02ms)
+2026-02-26 20:16:17,309 | INFO | uvicorn.access | 127.0.0.1:51591 - "GET /api/v1/tasks?page=1&page_size=10 HTTP/1.1" 200
+2026-02-26 20:16:19,322 | INFO | app.tasks | list_tasks filters: task_id=None status=None page=1 page_size=10 -> items=2 total=2
+2026-02-26 20:16:19,330 | INFO | app | [5563b19e] GET /api/v1/tasks?page=1&page_size=10 -> 200 (28.34ms)
+2026-02-26 20:16:19,330 | INFO | uvicorn.access | 127.0.0.1:51591 - "GET /api/v1/tasks?page=1&page_size=10 HTTP/1.1" 200
+2026-02-26 20:16:21,110 | INFO | uvicorn.error | ('127.0.0.1', 51625) - "WebSocket /api/v1/execution/ws/5dbaba03-328d-4176-904a-9eb9eff471aa" [accepted]
+2026-02-26 20:16:21,112 | INFO | app.execution | WS client connected for task 5dbaba03-328d-4176-904a-9eb9eff471aa (total: 1)
+2026-02-26 20:16:21,116 | INFO | uvicorn.error | connection open
+2026-02-26 20:16:27,154 | INFO | app.execution | WS client disconnected for task 5dbaba03-328d-4176-904a-9eb9eff471aa
+2026-02-26 20:16:27,156 | INFO | uvicorn.error | connection closed
+2026-02-26 20:16:54,287 | INFO | app | [d52b29fb] OPTIONS /api/v1/tasks/ca388b49-e51a-4379-bb65-c3c45e9c44ad -> 200 (5.16ms)
+2026-02-26 20:16:54,293 | INFO | uvicorn.access | 127.0.0.1:51852 - "OPTIONS /api/v1/tasks/ca388b49-e51a-4379-bb65-c3c45e9c44ad HTTP/1.1" 200
+2026-02-26 20:16:54,420 | INFO | app | [254efe5b] GET /api/v1/tasks/ca388b49-e51a-4379-bb65-c3c45e9c44ad -> 200 (123.04ms)
+2026-02-26 20:16:54,420 | INFO | uvicorn.access | 127.0.0.1:51852 - "GET /api/v1/tasks/ca388b49-e51a-4379-bb65-c3c45e9c44ad HTTP/1.1" 200
+2026-02-26 20:17:00,025 | INFO | app.tasks | list_tasks filters: task_id=None status=None page=1 page_size=10 -> items=2 total=2
+2026-02-26 20:17:00,027 | INFO | app | [563d82ac] GET /api/v1/tasks?page=1&page_size=10 -> 200 (35.52ms)
+2026-02-26 20:17:00,027 | INFO | uvicorn.access | 127.0.0.1:51886 - "GET /api/v1/tasks?page=1&page_size=10 HTTP/1.1" 200
+2026-02-26 20:17:01,513 | INFO | app | [e05746b7] OPTIONS /api/v1/tasks/5dbaba03-328d-4176-904a-9eb9eff471aa -> 200 (0.63ms)
+2026-02-26 20:17:01,513 | INFO | uvicorn.access | 127.0.0.1:51886 - "OPTIONS /api/v1/tasks/5dbaba03-328d-4176-904a-9eb9eff471aa HTTP/1.1" 200
+2026-02-26 20:17:01,533 | INFO | app | [5cf9bd90] GET /api/v1/tasks/5dbaba03-328d-4176-904a-9eb9eff471aa -> 200 (18.48ms)
+2026-02-26 20:17:01,534 | INFO | uvicorn.access | 127.0.0.1:51896 - "GET /api/v1/tasks/5dbaba03-328d-4176-904a-9eb9eff471aa HTTP/1.1" 200
+2026-02-26 20:17:02,814 | INFO | app.tasks | list_tasks filters: task_id=None status=None page=1 page_size=10 -> items=2 total=2
+2026-02-26 20:17:02,820 | INFO | app | [ed45f6e2] GET /api/v1/tasks?page=1&page_size=10 -> 200 (14.13ms)
+2026-02-26 20:17:02,820 | INFO | uvicorn.access | 127.0.0.1:51896 - "GET /api/v1/tasks?page=1&page_size=10 HTTP/1.1" 200
+2026-02-26 20:17:04,176 | INFO | app | [76c5f728] GET /api/v1/tasks/5dbaba03-328d-4176-904a-9eb9eff471aa -> 200 (14.56ms)
+2026-02-26 20:17:04,176 | INFO | uvicorn.access | 127.0.0.1:51896 - "GET /api/v1/tasks/5dbaba03-328d-4176-904a-9eb9eff471aa HTTP/1.1" 200
+2026-02-26 20:17:04,237 | INFO | uvicorn.error | ('127.0.0.1', 51916) - "WebSocket /api/v1/execution/ws/5dbaba03-328d-4176-904a-9eb9eff471aa" [accepted]
+2026-02-26 20:17:04,247 | INFO | app.execution | WS client connected for task 5dbaba03-328d-4176-904a-9eb9eff471aa (total: 1)
+2026-02-26 20:17:04,254 | INFO | uvicorn.error | connection open
+2026-02-26 20:17:13,714 | INFO | app.execution | WS client disconnected for task 5dbaba03-328d-4176-904a-9eb9eff471aa
+2026-02-26 20:17:13,714 | INFO | uvicorn.error | connection closed
+2026-02-26 20:17:13,801 | INFO | app.tasks | list_tasks filters: task_id=None status=None page=1 page_size=10 -> items=2 total=2
+2026-02-26 20:17:13,802 | INFO | app | [9eb6d28b] GET /api/v1/tasks?page=1&page_size=10 -> 200 (63.55ms)
+2026-02-26 20:17:13,803 | INFO | uvicorn.access | 127.0.0.1:52018 - "GET /api/v1/tasks?page=1&page_size=10 HTTP/1.1" 200
+2026-02-26 20:17:15,373 | INFO | app | [6386d040] GET /api/v1/tasks/ca388b49-e51a-4379-bb65-c3c45e9c44ad -> 200 (32.09ms)
+2026-02-26 20:17:15,374 | INFO | uvicorn.access | 127.0.0.1:52045 - "GET /api/v1/tasks/ca388b49-e51a-4379-bb65-c3c45e9c44ad HTTP/1.1" 200
+2026-02-26 20:17:52,348 | INFO | app | [c2ac7bbd] OPTIONS /api/v1/uploads/workflow -> 200 (2.58ms)
+2026-02-26 20:17:52,350 | INFO | uvicorn.access | 127.0.0.1:52259 - "OPTIONS /api/v1/uploads/workflow HTTP/1.1" 200
+2026-02-26 20:17:52,370 | INFO | app | [3c2c52e5] POST /api/v1/uploads/workflow -> 200 (18.42ms)
+2026-02-26 20:17:52,370 | INFO | uvicorn.access | 127.0.0.1:52259 - "POST /api/v1/uploads/workflow HTTP/1.1" 200
+2026-02-26 20:23:47,942 | INFO | uvicorn.error | Shutting down
+2026-02-26 20:23:48,050 | INFO | uvicorn.error | Waiting for application shutdown.
+2026-02-26 20:23:48,065 | INFO | uvicorn.error | Application shutdown complete.
+2026-02-26 20:23:48,072 | INFO | uvicorn.error | Finished server process [97875]
+2026-02-26 20:23:48,985 | INFO | uvicorn.error | Started server process [31727]
+2026-02-26 20:23:48,985 | INFO | uvicorn.error | Waiting for application startup.
+2026-02-26 20:23:48,985 | INFO | app | Starting API with env=development db=postgresql+asyncpg://postgres:postgres@localhost:5432/task_manager
+2026-02-26 20:23:49,360 | INFO | uvicorn.error | Application startup complete.
+2026-02-26 20:24:03,330 | INFO | uvicorn.error | Shutting down
+2026-02-26 20:24:03,431 | INFO | uvicorn.error | Waiting for application shutdown.
+2026-02-26 20:24:03,432 | INFO | uvicorn.error | Application shutdown complete.
+2026-02-26 20:24:03,434 | INFO | uvicorn.error | Finished server process [31727]
+2026-02-26 20:24:04,118 | INFO | uvicorn.error | Started server process [31831]
+2026-02-26 20:24:04,118 | INFO | uvicorn.error | Waiting for application startup.
+2026-02-26 20:24:04,118 | INFO | app | Starting API with env=development db=postgresql+asyncpg://postgres:postgres@localhost:5432/task_manager
+2026-02-26 20:24:04,222 | INFO | uvicorn.error | Application startup complete.
+2026-02-26 20:24:15,372 | INFO | uvicorn.error | Shutting down
+2026-02-26 20:24:15,490 | INFO | uvicorn.error | Waiting for application shutdown.
+2026-02-26 20:24:15,492 | INFO | uvicorn.error | Application shutdown complete.
+2026-02-26 20:24:15,492 | INFO | uvicorn.error | Finished server process [31831]
+2026-02-26 20:24:16,100 | INFO | uvicorn.error | Started server process [31941]
+2026-02-26 20:24:16,100 | INFO | uvicorn.error | Waiting for application startup.
+2026-02-26 20:24:16,100 | INFO | app | Starting API with env=development db=postgresql+asyncpg://postgres:postgres@localhost:5432/task_manager
+2026-02-26 20:24:16,193 | INFO | uvicorn.error | Application startup complete.
+2026-02-26 20:24:27,463 | INFO | uvicorn.error | Shutting down
+2026-02-26 20:24:27,565 | INFO | uvicorn.error | Waiting for application shutdown.
+2026-02-26 20:24:27,566 | INFO | uvicorn.error | Application shutdown complete.
+2026-02-26 20:24:27,567 | INFO | uvicorn.error | Finished server process [31941]
+2026-02-26 20:24:29,662 | INFO | uvicorn.error | Started server process [32097]
+2026-02-26 20:24:29,662 | INFO | uvicorn.error | Waiting for application startup.
+2026-02-26 20:24:29,663 | INFO | app | Starting API with env=development db=postgresql+asyncpg://postgres:postgres@localhost:5432/task_manager
+2026-02-26 20:24:29,971 | INFO | uvicorn.error | Application startup complete.
+2026-02-26 20:24:37,965 | INFO | uvicorn.error | Shutting down
+2026-02-26 20:24:38,073 | INFO | uvicorn.error | Waiting for application shutdown.
+2026-02-26 20:24:38,074 | INFO | uvicorn.error | Application shutdown complete.
+2026-02-26 20:24:38,074 | INFO | uvicorn.error | Finished server process [32097]
+2026-02-26 20:24:38,723 | INFO | uvicorn.error | Started server process [32261]
+2026-02-26 20:24:38,724 | INFO | uvicorn.error | Waiting for application startup.
+2026-02-26 20:24:38,724 | INFO | app | Starting API with env=development db=postgresql+asyncpg://postgres:postgres@localhost:5432/task_manager
+2026-02-26 20:24:38,839 | INFO | uvicorn.error | Application startup complete.
+2026-02-26 20:24:48,878 | INFO | uvicorn.error | Shutting down
+2026-02-26 20:24:48,981 | INFO | uvicorn.error | Waiting for application shutdown.
+2026-02-26 20:24:48,983 | INFO | uvicorn.error | Application shutdown complete.
+2026-02-26 20:24:48,983 | INFO | uvicorn.error | Finished server process [32261]
+2026-02-26 20:24:52,437 | INFO | uvicorn.error | Started server process [32417]
+2026-02-26 20:24:52,437 | INFO | uvicorn.error | Waiting for application startup.
+2026-02-26 20:24:52,443 | INFO | app | Starting API with env=development db=postgresql+asyncpg://postgres:postgres@localhost:5432/task_manager
+2026-02-26 20:24:52,937 | INFO | uvicorn.error | Application startup complete.
+2026-02-26 20:25:05,966 | INFO | uvicorn.error | Shutting down
+2026-02-26 20:25:06,070 | INFO | uvicorn.error | Waiting for application shutdown.
+2026-02-26 20:25:06,071 | INFO | uvicorn.error | Application shutdown complete.
+2026-02-26 20:25:06,071 | INFO | uvicorn.error | Finished server process [32417]
+2026-02-26 20:25:06,886 | INFO | uvicorn.error | Started server process [32827]
+2026-02-26 20:25:06,887 | INFO | uvicorn.error | Waiting for application startup.
+2026-02-26 20:25:06,889 | INFO | app | Starting API with env=development db=postgresql+asyncpg://postgres:postgres@localhost:5432/task_manager
+2026-02-26 20:25:07,001 | INFO | uvicorn.error | Application startup complete.
+2026-02-26 20:25:28,482 | INFO | uvicorn.error | Shutting down
+2026-02-26 20:25:28,627 | INFO | uvicorn.error | Waiting for application shutdown.
+2026-02-26 20:25:28,879 | INFO | uvicorn.error | Application shutdown complete.
+2026-02-26 20:25:28,881 | INFO | uvicorn.error | Finished server process [32827]
+2026-02-26 20:25:29,826 | INFO | uvicorn.error | Started server process [33155]
+2026-02-26 20:25:29,826 | INFO | uvicorn.error | Waiting for application startup.
+2026-02-26 20:25:29,826 | INFO | app | Starting API with env=development db=postgresql+asyncpg://postgres:postgres@localhost:5432/task_manager
+2026-02-26 20:25:29,910 | INFO | uvicorn.error | Application startup complete.
+2026-02-26 20:26:01,955 | INFO | app | [ef1a8810] GET /api/v1/tasks/ca388b49-e51a-4379-bb65-c3c45e9c44ad -> 200 (343.33ms)
+2026-02-26 20:26:01,956 | INFO | uvicorn.access | 127.0.0.1:55360 - "GET /api/v1/tasks/ca388b49-e51a-4379-bb65-c3c45e9c44ad HTTP/1.1" 200
+2026-02-26 20:26:24,819 | INFO | app | [98518c05] OPTIONS /api/v1/tasks?page=1&page_size=10 -> 200 (2.92ms)
+2026-02-26 20:26:24,821 | INFO | uvicorn.access | 127.0.0.1:55538 - "OPTIONS /api/v1/tasks?page=1&page_size=10 HTTP/1.1" 200
+2026-02-26 20:26:24,866 | INFO | app.tasks | list_tasks filters: task_id=None status=None page=1 page_size=10 -> items=2 total=2
+2026-02-26 20:26:24,868 | INFO | app | [b460b095] GET /api/v1/tasks?page=1&page_size=10 -> 200 (45.56ms)
+2026-02-26 20:26:24,868 | INFO | uvicorn.access | 127.0.0.1:55538 - "GET /api/v1/tasks?page=1&page_size=10 HTTP/1.1" 200
+2026-02-26 20:26:31,647 | INFO | uvicorn.error | Shutting down
+2026-02-26 20:26:31,754 | INFO | uvicorn.error | Waiting for application shutdown.
+2026-02-26 20:26:31,755 | INFO | uvicorn.error | Application shutdown complete.
+2026-02-26 20:26:31,755 | INFO | uvicorn.error | Finished server process [33155]
+2026-02-26 20:26:34,439 | INFO | uvicorn.error | Started server process [34374]
+2026-02-26 20:26:34,439 | INFO | uvicorn.error | Waiting for application startup.
+2026-02-26 20:26:34,439 | INFO | app | Starting API with env=development db=postgresql+asyncpg://postgres:postgres@localhost:5432/task_manager
+2026-02-26 20:26:34,753 | INFO | uvicorn.error | Application startup complete.
+2026-02-26 20:30:30,534 | INFO | uvicorn.error | Shutting down
+2026-02-26 20:30:30,673 | INFO | uvicorn.error | Waiting for application shutdown.
+2026-02-26 20:30:30,691 | INFO | uvicorn.error | Application shutdown complete.
+2026-02-26 20:30:30,694 | INFO | uvicorn.error | Finished server process [34374]
+2026-02-26 20:30:40,042 | INFO | uvicorn.error | Started server process [37912]
+2026-02-26 20:30:40,042 | INFO | uvicorn.error | Waiting for application startup.
+2026-02-26 20:30:40,043 | INFO | app | Starting API with env=development db=postgresql+asyncpg://postgres:postgres@localhost:5432/task_manager
+2026-02-26 20:30:40,169 | INFO | uvicorn.error | Application startup complete.
+2026-02-26 20:30:45,985 | INFO | app.tasks | list_tasks filters: task_id=None status=None page=1 page_size=10 -> items=2 total=2
+2026-02-26 20:30:45,991 | INFO | app | [884b8f63] GET /api/v1/tasks?page=1&page_size=10 -> 200 (106.80ms)
+2026-02-26 20:30:45,991 | INFO | uvicorn.access | 127.0.0.1:57430 - "GET /api/v1/tasks?page=1&page_size=10 HTTP/1.1" 200
+2026-02-26 20:30:48,537 | INFO | app | [0028d0e4] OPTIONS /api/v1/tasks/5dbaba03-328d-4176-904a-9eb9eff471aa -> 200 (5.70ms)
+2026-02-26 20:30:48,541 | INFO | uvicorn.access | 127.0.0.1:57430 - "OPTIONS /api/v1/tasks/5dbaba03-328d-4176-904a-9eb9eff471aa HTTP/1.1" 200
+2026-02-26 20:30:48,738 | INFO | app | [32f09af7] GET /api/v1/tasks/5dbaba03-328d-4176-904a-9eb9eff471aa -> 200 (194.35ms)
+2026-02-26 20:30:48,738 | INFO | uvicorn.access | 127.0.0.1:57430 - "GET /api/v1/tasks/5dbaba03-328d-4176-904a-9eb9eff471aa HTTP/1.1" 200
+2026-02-26 20:30:53,603 | INFO | app | [2744445f] OPTIONS /api/v1/uploads/workflow -> 200 (1.61ms)
+2026-02-26 20:30:53,603 | INFO | uvicorn.access | 127.0.0.1:57484 - "OPTIONS /api/v1/uploads/workflow HTTP/1.1" 200
+2026-02-26 20:30:53,619 | INFO | app | [02939417] POST /api/v1/uploads/workflow -> 200 (10.82ms)
+2026-02-26 20:30:53,619 | INFO | uvicorn.access | 127.0.0.1:57484 - "POST /api/v1/uploads/workflow HTTP/1.1" 200
+2026-02-26 20:30:55,058 | INFO | app | [b3aefea6] OPTIONS /api/v1/tasks/5dbaba03-328d-4176-904a-9eb9eff471aa -> 200 (0.52ms)
+2026-02-26 20:30:55,058 | INFO | uvicorn.access | 127.0.0.1:57500 - "OPTIONS /api/v1/tasks/5dbaba03-328d-4176-904a-9eb9eff471aa HTTP/1.1" 200
+2026-02-26 20:30:55,153 | INFO | app | [14df5e44] PATCH /api/v1/tasks/5dbaba03-328d-4176-904a-9eb9eff471aa -> 200 (93.36ms)
+2026-02-26 20:30:55,153 | INFO | uvicorn.access | 127.0.0.1:57502 - "PATCH /api/v1/tasks/5dbaba03-328d-4176-904a-9eb9eff471aa HTTP/1.1" 200
+2026-02-26 20:30:55,211 | INFO | app | [90b1e782] GET /api/v1/tasks/5dbaba03-328d-4176-904a-9eb9eff471aa -> 200 (11.32ms)
+2026-02-26 20:30:55,211 | INFO | uvicorn.access | 127.0.0.1:57502 - "GET /api/v1/tasks/5dbaba03-328d-4176-904a-9eb9eff471aa HTTP/1.1" 200
+2026-02-26 20:30:55,225 | INFO | uvicorn.error | ('127.0.0.1', 57507) - "WebSocket /api/v1/execution/ws/5dbaba03-328d-4176-904a-9eb9eff471aa" [accepted]
+2026-02-26 20:30:55,225 | INFO | app.execution | WS client connected for task 5dbaba03-328d-4176-904a-9eb9eff471aa (total: 1)
+2026-02-26 20:30:55,226 | INFO | uvicorn.error | connection open
+2026-02-26 20:30:56,195 | INFO | app.execution | WS client disconnected for task 5dbaba03-328d-4176-904a-9eb9eff471aa
+2026-02-26 20:30:56,195 | INFO | uvicorn.error | connection closed
+2026-02-26 20:30:56,266 | INFO | app.tasks | list_tasks filters: task_id=None status=None page=1 page_size=10 -> items=2 total=2
+2026-02-26 20:30:56,268 | INFO | app | [7969a2c6] GET /api/v1/tasks?page=1&page_size=10 -> 200 (50.12ms)
+2026-02-26 20:30:56,268 | INFO | uvicorn.access | 127.0.0.1:57502 - "GET /api/v1/tasks?page=1&page_size=10 HTTP/1.1" 200
+2026-02-26 20:30:59,840 | INFO | app | [1587e5e7] GET /api/v1/tasks/5dbaba03-328d-4176-904a-9eb9eff471aa -> 200 (88.75ms)
+2026-02-26 20:30:59,842 | INFO | uvicorn.access | 127.0.0.1:57502 - "GET /api/v1/tasks/5dbaba03-328d-4176-904a-9eb9eff471aa HTTP/1.1" 200
+2026-02-26 20:30:59,856 | INFO | uvicorn.error | ('127.0.0.1', 57541) - "WebSocket /api/v1/execution/ws/5dbaba03-328d-4176-904a-9eb9eff471aa" [accepted]
+2026-02-26 20:30:59,856 | INFO | app.execution | WS client connected for task 5dbaba03-328d-4176-904a-9eb9eff471aa (total: 1)
+2026-02-26 20:30:59,859 | INFO | uvicorn.error | connection open
+2026-02-26 20:31:02,487 | INFO | app.execution | WS client disconnected for task 5dbaba03-328d-4176-904a-9eb9eff471aa
+2026-02-26 20:31:02,491 | INFO | uvicorn.error | connection closed
+2026-02-26 20:31:02,579 | INFO | app.tasks | list_tasks filters: task_id=None status=None page=1 page_size=10 -> items=2 total=2
+2026-02-26 20:31:02,580 | INFO | app | [0e40b58f] GET /api/v1/tasks?page=1&page_size=10 -> 200 (61.91ms)
+2026-02-26 20:31:02,583 | INFO | uvicorn.access | 127.0.0.1:57502 - "GET /api/v1/tasks?page=1&page_size=10 HTTP/1.1" 200
+2026-02-26 20:31:10,492 | INFO | app | [58ae3faa] GET /api/v1/tasks/5dbaba03-328d-4176-904a-9eb9eff471aa -> 200 (80.61ms)
+2026-02-26 20:31:10,493 | INFO | uvicorn.access | 127.0.0.1:57622 - "GET /api/v1/tasks/5dbaba03-328d-4176-904a-9eb9eff471aa HTTP/1.1" 200
+2026-02-26 20:32:14,428 | INFO | app | [16f54f2f] POST /api/v1/uploads/workflow -> 200 (15.09ms)
+2026-02-26 20:32:14,430 | INFO | uvicorn.access | 127.0.0.1:58007 - "POST /api/v1/uploads/workflow HTTP/1.1" 200
+2026-02-26 20:32:19,612 | INFO | app | [92e8cd32] PATCH /api/v1/tasks/5dbaba03-328d-4176-904a-9eb9eff471aa -> 200 (73.88ms)
+2026-02-26 20:32:19,612 | INFO | uvicorn.access | 127.0.0.1:58029 - "PATCH /api/v1/tasks/5dbaba03-328d-4176-904a-9eb9eff471aa HTTP/1.1" 200
+2026-02-26 20:32:19,659 | INFO | app | [7ec4dea3] GET /api/v1/tasks/5dbaba03-328d-4176-904a-9eb9eff471aa -> 200 (24.01ms)
+2026-02-26 20:32:19,659 | INFO | uvicorn.access | 127.0.0.1:58029 - "GET /api/v1/tasks/5dbaba03-328d-4176-904a-9eb9eff471aa HTTP/1.1" 200
+2026-02-26 20:32:19,673 | INFO | uvicorn.error | ('127.0.0.1', 58032) - "WebSocket /api/v1/execution/ws/5dbaba03-328d-4176-904a-9eb9eff471aa" [accepted]
+2026-02-26 20:32:19,673 | INFO | app.execution | WS client connected for task 5dbaba03-328d-4176-904a-9eb9eff471aa (total: 1)
+2026-02-26 20:32:19,675 | INFO | uvicorn.error | connection open
+2026-02-26 20:32:32,691 | INFO | app | [1acd6eeb] OPTIONS /api/v1/execution/task/5dbaba03-328d-4176-904a-9eb9eff471aa -> 200 (1.91ms)
+2026-02-26 20:32:32,692 | INFO | uvicorn.access | 127.0.0.1:58095 - "OPTIONS /api/v1/execution/task/5dbaba03-328d-4176-904a-9eb9eff471aa HTTP/1.1" 200
+2026-02-26 20:32:32,780 | INFO | app.execution | Execute task requested: task_id=5dbaba03-328d-4176-904a-9eb9eff471aa status=pending has_workflow=True node_count=28
+2026-02-26 20:32:32,789 | INFO | app.execution | Task marked running on execute request: task_id=5dbaba03-328d-4176-904a-9eb9eff471aa
+2026-02-26 20:32:32,789 | INFO | app.comfyui | Connecting to ComfyUI WS: ws://34.59.208.230:8188/ws?clientId=bb17f67483ba44499ab807b1d846bc75
+2026-02-26 20:32:35,791 | WARNING | app.execution | ComfyUI listener did not connect within timeout, will still submit: task_id=5dbaba03-328d-4176-904a-9eb9eff471aa client_id=bb17f67483ba44499ab807b1d846bc75
+2026-02-26 20:32:35,792 | INFO | app.comfyui | Submitting prompt to ComfyUI: api_url=http://34.59.208.230:8188/api/prompt client_id=bb17f67483ba44499ab807b1d846bc75 node_count=28
+2026-02-26 20:32:35,876 | INFO | app.comfyui | Connected to ComfyUI WS: client_id=bb17f67483ba44499ab807b1d846bc75
+2026-02-26 20:32:35,877 | INFO | app.execution | Execution event relayed: task_id=5dbaba03-328d-4176-904a-9eb9eff471aa type=status prompt_id=None node_id=None
+2026-02-26 20:32:38,117 | INFO | httpx | HTTP Request: POST http://34.59.208.230:8188/api/prompt "HTTP/1.1 200 OK"
+2026-02-26 20:32:38,118 | INFO | app.comfyui | ComfyUI /api/prompt accepted: prompt_id=02530bc3-c297-418f-8640-58a95396b9f8 has_node_errors=False response_keys=['node_errors', 'number', 'prompt_id']
+2026-02-26 20:32:38,118 | INFO | app.execution | ComfyUI submit result: task_id=5dbaba03-328d-4176-904a-9eb9eff471aa prompt_id=02530bc3-c297-418f-8640-58a95396b9f8 error=
+2026-02-26 20:32:38,119 | INFO | app.execution | Execution event relayed: task_id=5dbaba03-328d-4176-904a-9eb9eff471aa type=status prompt_id=None node_id=None
+2026-02-26 20:32:38,119 | INFO | app.execution | Execution event relayed: task_id=5dbaba03-328d-4176-904a-9eb9eff471aa type=status prompt_id=None node_id=None
+2026-02-26 20:32:38,119 | INFO | app.comfyui | ComfyUI event: type=execution_start prompt_id=02530bc3-c297-418f-8640-58a95396b9f8 node_id=None
+2026-02-26 20:32:38,119 | INFO | app.execution | Execution event relayed: task_id=5dbaba03-328d-4176-904a-9eb9eff471aa type=execution_start prompt_id=02530bc3-c297-418f-8640-58a95396b9f8 node_id=None
+2026-02-26 20:32:38,119 | INFO | app.comfyui | ComfyUI event: type=execution_cached prompt_id=02530bc3-c297-418f-8640-58a95396b9f8 node_id=None
+2026-02-26 20:32:38,119 | INFO | app.execution | Execution event relayed: task_id=5dbaba03-328d-4176-904a-9eb9eff471aa type=execution_cached prompt_id=02530bc3-c297-418f-8640-58a95396b9f8 node_id=None
+2026-02-26 20:32:38,120 | INFO | app.comfyui | ComfyUI event: type=executing prompt_id=02530bc3-c297-418f-8640-58a95396b9f8 node_id=18
+2026-02-26 20:32:38,120 | INFO | app.execution | Execution event relayed: task_id=5dbaba03-328d-4176-904a-9eb9eff471aa type=executing prompt_id=02530bc3-c297-418f-8640-58a95396b9f8 node_id=18
+2026-02-26 20:32:38,169 | INFO | app.execution | Prompt id attached to listener: task_id=5dbaba03-328d-4176-904a-9eb9eff471aa prompt_id=02530bc3-c297-418f-8640-58a95396b9f8
+2026-02-26 20:32:38,170 | INFO | app.execution | Execution start broadcasted: task_id=5dbaba03-328d-4176-904a-9eb9eff471aa prompt_id=02530bc3-c297-418f-8640-58a95396b9f8
+2026-02-26 20:32:38,172 | INFO | app | [b5cc7170] POST /api/v1/execution/task/5dbaba03-328d-4176-904a-9eb9eff471aa -> 200 (5477.89ms)
+2026-02-26 20:32:38,172 | INFO | uvicorn.access | 127.0.0.1:58095 - "POST /api/v1/execution/task/5dbaba03-328d-4176-904a-9eb9eff471aa HTTP/1.1" 200
+2026-02-26 20:32:38,363 | INFO | app | [87bde345] GET /api/v1/tasks/5dbaba03-328d-4176-904a-9eb9eff471aa -> 200 (162.59ms)
+2026-02-26 20:32:38,363 | INFO | uvicorn.access | 127.0.0.1:58095 - "GET /api/v1/tasks/5dbaba03-328d-4176-904a-9eb9eff471aa HTTP/1.1" 200
+2026-02-26 20:32:46,813 | INFO | app.comfyui | ComfyUI event: type=executing prompt_id=02530bc3-c297-418f-8640-58a95396b9f8 node_id=39
+2026-02-26 20:32:46,814 | INFO | app.execution | Execution event relayed: task_id=5dbaba03-328d-4176-904a-9eb9eff471aa type=executing prompt_id=02530bc3-c297-418f-8640-58a95396b9f8 node_id=39
+2026-02-26 20:32:46,815 | INFO | app.comfyui | ComfyUI event: type=executing prompt_id=02530bc3-c297-418f-8640-58a95396b9f8 node_id=53
+2026-02-26 20:32:46,815 | INFO | app.execution | Execution event relayed: task_id=5dbaba03-328d-4176-904a-9eb9eff471aa type=executing prompt_id=02530bc3-c297-418f-8640-58a95396b9f8 node_id=53
+2026-02-26 20:32:47,060 | INFO | app.comfyui | ComfyUI event: type=execution_error prompt_id=02530bc3-c297-418f-8640-58a95396b9f8 node_id=None
+2026-02-26 20:32:47,060 | INFO | app.execution | Execution event relayed: task_id=5dbaba03-328d-4176-904a-9eb9eff471aa type=execution_error prompt_id=02530bc3-c297-418f-8640-58a95396b9f8 node_id=None
+2026-02-26 20:32:47,060 | INFO | app.execution | All prompts completed for task 5dbaba03-328d-4176-904a-9eb9eff471aa
+2026-02-26 20:32:47,060 | INFO | app.execution | Finalizing task: task_id=5dbaba03-328d-4176-904a-9eb9eff471aa final_status=fail completed_prompt_ids=['02530bc3-c297-418f-8640-58a95396b9f8']
+2026-02-26 20:32:47,101 | ERROR | app.comfyui | Error in on_event callback
+Traceback (most recent call last):
+  File "/Users/guyin/Desktop/Echooo/repo/confyUI-flow-back/backend/.venv/lib/python3.13/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 545, in _prepare_and_execute
+    self._rows = deque(await prepared_stmt.fetch(*parameters))
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/guyin/Desktop/Echooo/repo/confyUI-flow-back/backend/.venv/lib/python3.13/site-packages/asyncpg/prepared_stmt.py", line 176, in fetch
+    data = await self.__bind_execute(args, 0, timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/guyin/Desktop/Echooo/repo/confyUI-flow-back/backend/.venv/lib/python3.13/site-packages/asyncpg/prepared_stmt.py", line 267, in __bind_execute
+    data, status, _ = await self.__do_execute(
+                      ^^^^^^^^^^^^^^^^^^^^^^^^
+        lambda protocol: protocol.bind_execute(
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+            self._state, args, '', limit, True, timeout))
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/guyin/Desktop/Echooo/repo/confyUI-flow-back/backend/.venv/lib/python3.13/site-packages/asyncpg/prepared_stmt.py", line 256, in __do_execute
+    return await executor(protocol)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "asyncpg/protocol/protocol.pyx", line 206, in bind_execute
+asyncpg.exceptions.InvalidTextRepresentationError: invalid input value for enum task_status: "fail"
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/guyin/Desktop/Echooo/repo/confyUI-flow-back/backend/.venv/lib/python3.13/site-packages/sqlalchemy/engine/base.py", line 1964, in _exec_single_context
+    self.dialect.do_execute(
+    ~~~~~~~~~~~~~~~~~~~~~~~^
+        cursor, str_statement, effective_parameters, context
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/guyin/Desktop/Echooo/repo/confyUI-flow-back/backend/.venv/lib/python3.13/site-packages/sqlalchemy/engine/default.py", line 942, in do_execute
+    cursor.execute(statement, parameters)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/guyin/Desktop/Echooo/repo/confyUI-flow-back/backend/.venv/lib/python3.13/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 580, in execute
+    self._adapt_connection.await_(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        self._prepare_and_execute(operation, parameters)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/guyin/Desktop/Echooo/repo/confyUI-flow-back/backend/.venv/lib/python3.13/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 132, in await_only
+    return current.parent.switch(awaitable)  # type: ignore[no-any-return,attr-defined] # noqa: E501
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "/Users/guyin/Desktop/Echooo/repo/confyUI-flow-back/backend/.venv/lib/python3.13/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 196, in greenlet_spawn
+    value = await result
+            ^^^^^^^^^^^^
+  File "/Users/guyin/Desktop/Echooo/repo/confyUI-flow-back/backend/.venv/lib/python3.13/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 558, in _prepare_and_execute
+    self._handle_exception(error)
+    ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^
+  File "/Users/guyin/Desktop/Echooo/repo/confyUI-flow-back/backend/.venv/lib/python3.13/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 508, in _handle_exception
+    self._adapt_connection._handle_exception(error)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^
+  File "/Users/guyin/Desktop/Echooo/repo/confyUI-flow-back/backend/.venv/lib/python3.13/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 792, in _handle_exception
+    raise translated_error from error
+sqlalchemy.dialects.postgresql.asyncpg.AsyncAdapt_asyncpg_dbapi.Error: <class 'asyncpg.exceptions.InvalidTextRepresentationError'>: invalid input value for enum task_status: "fail"
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/guyin/Desktop/Echooo/repo/confyUI-flow-back/backend/app/services/comfyui_service.py", line 208, in listen_comfyui_ws
+    await on_event(event)
+  File "/Users/guyin/Desktop/Echooo/repo/confyUI-flow-back/backend/app/api/v1/execution.py", line 820, in on_event
+    await finalize_if_done()
+  File "/Users/guyin/Desktop/Echooo/repo/confyUI-flow-back/backend/app/api/v1/execution.py", line 689, in finalize_if_done
+    await _set_task_status(task_id=task_id, status_value=final_status, message=final_message)
+  File "/Users/guyin/Desktop/Echooo/repo/confyUI-flow-back/backend/app/api/v1/execution.py", line 602, in _set_task_status
+    await session.commit()
+  File "/Users/guyin/Desktop/Echooo/repo/confyUI-flow-back/backend/.venv/lib/python3.13/site-packages/sqlalchemy/ext/asyncio/session.py", line 1011, in commit
+    await greenlet_spawn(self.sync_session.commit)
+  File "/Users/guyin/Desktop/Echooo/repo/confyUI-flow-back/backend/.venv/lib/python3.13/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 203, in greenlet_spawn
+    result = context.switch(value)
+  File "/Users/guyin/Desktop/Echooo/repo/confyUI-flow-back/backend/.venv/lib/python3.13/site-packages/sqlalchemy/orm/session.py", line 2032, in commit
+    trans.commit(_to_root=True)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "<string>", line 2, in commit
+  File "/Users/guyin/Desktop/Echooo/repo/confyUI-flow-back/backend/.venv/lib/python3.13/site-packages/sqlalchemy/orm/state_changes.py", line 139, in _go
+    ret_value = fn(self, *arg, **kw)
+  File "/Users/guyin/Desktop/Echooo/repo/confyUI-flow-back/backend/.venv/lib/python3.13/site-packages/sqlalchemy/orm/session.py", line 1313, in commit
+    self._prepare_impl()
+    ~~~~~~~~~~~~~~~~~~^^
+  File "<string>", line 2, in _prepare_impl
+  File "/Users/guyin/Desktop/Echooo/repo/confyUI-flow-back/backend/.venv/lib/python3.13/site-packages/sqlalchemy/orm/state_changes.py", line 139, in _go
+    ret_value = fn(self, *arg, **kw)
+  File "/Users/guyin/Desktop/Echooo/repo/confyUI-flow-back/backend/.venv/lib/python3.13/site-packages/sqlalchemy/orm/session.py", line 1288, in _prepare_impl
+    self.session.flush()
+    ~~~~~~~~~~~~~~~~~~^^
+  File "/Users/guyin/Desktop/Echooo/repo/confyUI-flow-back/backend/.venv/lib/python3.13/site-packages/sqlalchemy/orm/session.py", line 4353, in flush
+    self._flush(objects)
+    ~~~~~~~~~~~^^^^^^^^^
+  File "/Users/guyin/Desktop/Echooo/repo/confyUI-flow-back/backend/.venv/lib/python3.13/site-packages/sqlalchemy/orm/session.py", line 4488, in _flush
+    with util.safe_reraise():
+         ~~~~~~~~~~~~~~~~~^^
+  File "/Users/guyin/Desktop/Echooo/repo/confyUI-flow-back/backend/.venv/lib/python3.13/site-packages/sqlalchemy/util/langhelpers.py", line 146, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "/Users/guyin/Desktop/Echooo/repo/confyUI-flow-back/backend/.venv/lib/python3.13/site-packages/sqlalchemy/orm/session.py", line 4449, in _flush
+    flush_context.execute()
+    ~~~~~~~~~~~~~~~~~~~~~^^
+  File "/Users/guyin/Desktop/Echooo/repo/confyUI-flow-back/backend/.venv/lib/python3.13/site-packages/sqlalchemy/orm/unitofwork.py", line 466, in execute
+    rec.execute(self)
+    ~~~~~~~~~~~^^^^^^
+  File "/Users/guyin/Desktop/Echooo/repo/confyUI-flow-back/backend/.venv/lib/python3.13/site-packages/sqlalchemy/orm/unitofwork.py", line 642, in execute
+    util.preloaded.orm_persistence.save_obj(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        self.mapper,
+        ^^^^^^^^^^^^
+        uow.states_for_mapper_hierarchy(self.mapper, False, False),
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        uow,
+        ^^^^
+    )
+    ^
+  File "/Users/guyin/Desktop/Echooo/repo/confyUI-flow-back/backend/.venv/lib/python3.13/site-packages/sqlalchemy/orm/persistence.py", line 85, in save_obj
+    _emit_update_statements(
+    ~~~~~~~~~~~~~~~~~~~~~~~^
+        base_mapper,
+        ^^^^^^^^^^^^
+    ...<3 lines>...
+        update,
+        ^^^^^^^
+    )
+    ^
+  File "/Users/guyin/Desktop/Echooo/repo/confyUI-flow-back/backend/.venv/lib/python3.13/site-packages/sqlalchemy/orm/persistence.py", line 912, in _emit_update_statements
+    c = connection.execute(
+        statement, multiparams, execution_options=execution_options
+    )
+  File "/Users/guyin/Desktop/Echooo/repo/confyUI-flow-back/backend/.venv/lib/python3.13/site-packages/sqlalchemy/engine/base.py", line 1416, in execute
+    return meth(
+        self,
+        distilled_parameters,
+        execution_options or NO_OPTIONS,
+    )
+  File "/Users/guyin/Desktop/Echooo/repo/confyUI-flow-back/backend/.venv/lib/python3.13/site-packages/sqlalchemy/sql/elements.py", line 516, in _execute_on_connection
+    return connection._execute_clauseelement(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        self, distilled_params, execution_options
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/guyin/Desktop/Echooo/repo/confyUI-flow-back/backend/.venv/lib/python3.13/site-packages/sqlalchemy/engine/base.py", line 1638, in _execute_clauseelement
+    ret = self._execute_context(
+        dialect,
+    ...<8 lines>...
+        cache_hit=cache_hit,
+    )
+  File "/Users/guyin/Desktop/Echooo/repo/confyUI-flow-back/backend/.venv/lib/python3.13/site-packages/sqlalchemy/engine/base.py", line 1843, in _execute_context
+    return self._exec_single_context(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~^
+        dialect, context, statement, parameters
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/guyin/Desktop/Echooo/repo/confyUI-flow-back/backend/.venv/lib/python3.13/site-packages/sqlalchemy/engine/base.py", line 1983, in _exec_single_context
+    self._handle_dbapi_exception(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        e, str_statement, effective_parameters, cursor, context
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/guyin/Desktop/Echooo/repo/confyUI-flow-back/backend/.venv/lib/python3.13/site-packages/sqlalchemy/engine/base.py", line 2352, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "/Users/guyin/Desktop/Echooo/repo/confyUI-flow-back/backend/.venv/lib/python3.13/site-packages/sqlalchemy/engine/base.py", line 1964, in _exec_single_context
+    self.dialect.do_execute(
+    ~~~~~~~~~~~~~~~~~~~~~~~^
+        cursor, str_statement, effective_parameters, context
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/guyin/Desktop/Echooo/repo/confyUI-flow-back/backend/.venv/lib/python3.13/site-packages/sqlalchemy/engine/default.py", line 942, in do_execute
+    cursor.execute(statement, parameters)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/guyin/Desktop/Echooo/repo/confyUI-flow-back/backend/.venv/lib/python3.13/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 580, in execute
+    self._adapt_connection.await_(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        self._prepare_and_execute(operation, parameters)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/guyin/Desktop/Echooo/repo/confyUI-flow-back/backend/.venv/lib/python3.13/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 132, in await_only
+    return current.parent.switch(awaitable)  # type: ignore[no-any-return,attr-defined] # noqa: E501
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "/Users/guyin/Desktop/Echooo/repo/confyUI-flow-back/backend/.venv/lib/python3.13/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 196, in greenlet_spawn
+    value = await result
+            ^^^^^^^^^^^^
+  File "/Users/guyin/Desktop/Echooo/repo/confyUI-flow-back/backend/.venv/lib/python3.13/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 558, in _prepare_and_execute
+    self._handle_exception(error)
+    ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^
+  File "/Users/guyin/Desktop/Echooo/repo/confyUI-flow-back/backend/.venv/lib/python3.13/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 508, in _handle_exception
+    self._adapt_connection._handle_exception(error)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^
+  File "/Users/guyin/Desktop/Echooo/repo/confyUI-flow-back/backend/.venv/lib/python3.13/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 792, in _handle_exception
+    raise translated_error from error
+sqlalchemy.exc.DBAPIError: (sqlalchemy.dialects.postgresql.asyncpg.Error) <class 'asyncpg.exceptions.InvalidTextRepresentationError'>: invalid input value for enum task_status: "fail"
+[SQL: UPDATE tasks SET status=$1::task_status, comfy_message=$2::VARCHAR, execution_state=$3::VARCHAR, updated_at=$4::TIMESTAMP WITH TIME ZONE WHERE tasks.id = $5::UUID]
+[parameters: ('fail', 'Failed to get task info: 404 Client Error: Not Found for url: http://35.188.136.53:8000/api/v1/tasks/5dbaba03-328d-4176-904a-9eb9eff471aa\n', '{"task_id": "5dbaba03-328d-4176-904a-9eb9eff471aa", "status": "fail", "prompt_id": "02530bc3-c297-418f-8640-58a95396b9f8", "prompt_ids": ["02530bc3-c ... (986 characters truncated) ... 9eb9eff471aa\\n", "type": "error"}, {"time": "20:32:47", "message": "执行结束，存在错误", "type": "error"}], "updated_at": "2026-02-26T12:32:47.060787+00:00"}', datetime.datetime(2026, 2, 26, 12, 32, 47, 83745, tzinfo=datetime.timezone.utc), UUID('5dbaba03-328d-4176-904a-9eb9eff471aa'))]
+(Background on this error at: https://sqlalche.me/e/20/dbapi)
+2026-02-26 20:32:47,122 | INFO | app.execution | Execution event relayed: task_id=5dbaba03-328d-4176-904a-9eb9eff471aa type=status prompt_id=None node_id=None
+2026-02-26 20:32:47,122 | INFO | app.comfyui | ComfyUI event: type=executing prompt_id=02530bc3-c297-418f-8640-58a95396b9f8 node_id=None
+2026-02-26 20:32:47,122 | INFO | app.execution | Execution event relayed: task_id=5dbaba03-328d-4176-904a-9eb9eff471aa type=executing prompt_id=02530bc3-c297-418f-8640-58a95396b9f8 node_id=None
+2026-02-26 20:37:47,125 | WARNING | app.comfyui | ComfyUI WS connection closed
+2026-02-26 20:37:47,245 | ERROR | app.execution | ComfyUI listener failed for task 5dbaba03-328d-4176-904a-9eb9eff471aa
+Traceback (most recent call last):
+  File "/Users/guyin/Desktop/Echooo/repo/confyUI-flow-back/backend/.venv/lib/python3.13/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 545, in _prepare_and_execute
+    self._rows = deque(await prepared_stmt.fetch(*parameters))
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/guyin/Desktop/Echooo/repo/confyUI-flow-back/backend/.venv/lib/python3.13/site-packages/asyncpg/prepared_stmt.py", line 176, in fetch
+    data = await self.__bind_execute(args, 0, timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/guyin/Desktop/Echooo/repo/confyUI-flow-back/backend/.venv/lib/python3.13/site-packages/asyncpg/prepared_stmt.py", line 267, in __bind_execute
+    data, status, _ = await self.__do_execute(
+                      ^^^^^^^^^^^^^^^^^^^^^^^^
+        lambda protocol: protocol.bind_execute(
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+            self._state, args, '', limit, True, timeout))
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/guyin/Desktop/Echooo/repo/confyUI-flow-back/backend/.venv/lib/python3.13/site-packages/asyncpg/prepared_stmt.py", line 256, in __do_execute
+    return await executor(protocol)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "asyncpg/protocol/protocol.pyx", line 206, in bind_execute
+asyncpg.exceptions.InvalidTextRepresentationError: invalid input value for enum task_status: "fail"
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/guyin/Desktop/Echooo/repo/confyUI-flow-back/backend/.venv/lib/python3.13/site-packages/sqlalchemy/engine/base.py", line 1964, in _exec_single_context
+    self.dialect.do_execute(
+    ~~~~~~~~~~~~~~~~~~~~~~~^
+        cursor, str_statement, effective_parameters, context
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/guyin/Desktop/Echooo/repo/confyUI-flow-back/backend/.venv/lib/python3.13/site-packages/sqlalchemy/engine/default.py", line 942, in do_execute
+    cursor.execute(statement, parameters)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/guyin/Desktop/Echooo/repo/confyUI-flow-back/backend/.venv/lib/python3.13/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 580, in execute
+    self._adapt_connection.await_(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        self._prepare_and_execute(operation, parameters)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/guyin/Desktop/Echooo/repo/confyUI-flow-back/backend/.venv/lib/python3.13/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 132, in await_only
+    return current.parent.switch(awaitable)  # type: ignore[no-any-return,attr-defined] # noqa: E501
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "/Users/guyin/Desktop/Echooo/repo/confyUI-flow-back/backend/.venv/lib/python3.13/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 196, in greenlet_spawn
+    value = await result
+            ^^^^^^^^^^^^
+  File "/Users/guyin/Desktop/Echooo/repo/confyUI-flow-back/backend/.venv/lib/python3.13/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 558, in _prepare_and_execute
+    self._handle_exception(error)
+    ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^
+  File "/Users/guyin/Desktop/Echooo/repo/confyUI-flow-back/backend/.venv/lib/python3.13/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 508, in _handle_exception
+    self._adapt_connection._handle_exception(error)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^
+  File "/Users/guyin/Desktop/Echooo/repo/confyUI-flow-back/backend/.venv/lib/python3.13/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 792, in _handle_exception
+    raise translated_error from error
+sqlalchemy.dialects.postgresql.asyncpg.AsyncAdapt_asyncpg_dbapi.Error: <class 'asyncpg.exceptions.InvalidTextRepresentationError'>: invalid input value for enum task_status: "fail"
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/guyin/Desktop/Echooo/repo/confyUI-flow-back/backend/app/api/v1/execution.py", line 840, in _run_comfyui_listener
+    await _set_task_status(task_id=task_id, status_value=TaskStatus.fail, message=message)
+  File "/Users/guyin/Desktop/Echooo/repo/confyUI-flow-back/backend/app/api/v1/execution.py", line 602, in _set_task_status
+    await session.commit()
+  File "/Users/guyin/Desktop/Echooo/repo/confyUI-flow-back/backend/.venv/lib/python3.13/site-packages/sqlalchemy/ext/asyncio/session.py", line 1011, in commit
+    await greenlet_spawn(self.sync_session.commit)
+  File "/Users/guyin/Desktop/Echooo/repo/confyUI-flow-back/backend/.venv/lib/python3.13/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 203, in greenlet_spawn
+    result = context.switch(value)
+  File "/Users/guyin/Desktop/Echooo/repo/confyUI-flow-back/backend/.venv/lib/python3.13/site-packages/sqlalchemy/orm/session.py", line 2032, in commit
+    trans.commit(_to_root=True)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "<string>", line 2, in commit
+  File "/Users/guyin/Desktop/Echooo/repo/confyUI-flow-back/backend/.venv/lib/python3.13/site-packages/sqlalchemy/orm/state_changes.py", line 139, in _go
+    ret_value = fn(self, *arg, **kw)
+  File "/Users/guyin/Desktop/Echooo/repo/confyUI-flow-back/backend/.venv/lib/python3.13/site-packages/sqlalchemy/orm/session.py", line 1313, in commit
+    self._prepare_impl()
+    ~~~~~~~~~~~~~~~~~~^^
+  File "<string>", line 2, in _prepare_impl
+  File "/Users/guyin/Desktop/Echooo/repo/confyUI-flow-back/backend/.venv/lib/python3.13/site-packages/sqlalchemy/orm/state_changes.py", line 139, in _go
+    ret_value = fn(self, *arg, **kw)
+  File "/Users/guyin/Desktop/Echooo/repo/confyUI-flow-back/backend/.venv/lib/python3.13/site-packages/sqlalchemy/orm/session.py", line 1288, in _prepare_impl
+    self.session.flush()
+    ~~~~~~~~~~~~~~~~~~^^
+  File "/Users/guyin/Desktop/Echooo/repo/confyUI-flow-back/backend/.venv/lib/python3.13/site-packages/sqlalchemy/orm/session.py", line 4353, in flush
+    self._flush(objects)
+    ~~~~~~~~~~~^^^^^^^^^
+  File "/Users/guyin/Desktop/Echooo/repo/confyUI-flow-back/backend/.venv/lib/python3.13/site-packages/sqlalchemy/orm/session.py", line 4488, in _flush
+    with util.safe_reraise():
+         ~~~~~~~~~~~~~~~~~^^
+  File "/Users/guyin/Desktop/Echooo/repo/confyUI-flow-back/backend/.venv/lib/python3.13/site-packages/sqlalchemy/util/langhelpers.py", line 146, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "/Users/guyin/Desktop/Echooo/repo/confyUI-flow-back/backend/.venv/lib/python3.13/site-packages/sqlalchemy/orm/session.py", line 4449, in _flush
+    flush_context.execute()
+    ~~~~~~~~~~~~~~~~~~~~~^^
+  File "/Users/guyin/Desktop/Echooo/repo/confyUI-flow-back/backend/.venv/lib/python3.13/site-packages/sqlalchemy/orm/unitofwork.py", line 466, in execute
+    rec.execute(self)
+    ~~~~~~~~~~~^^^^^^
+  File "/Users/guyin/Desktop/Echooo/repo/confyUI-flow-back/backend/.venv/lib/python3.13/site-packages/sqlalchemy/orm/unitofwork.py", line 642, in execute
+    util.preloaded.orm_persistence.save_obj(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        self.mapper,
+        ^^^^^^^^^^^^
+        uow.states_for_mapper_hierarchy(self.mapper, False, False),
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        uow,
+        ^^^^
+    )
+    ^
+  File "/Users/guyin/Desktop/Echooo/repo/confyUI-flow-back/backend/.venv/lib/python3.13/site-packages/sqlalchemy/orm/persistence.py", line 85, in save_obj
+    _emit_update_statements(
+    ~~~~~~~~~~~~~~~~~~~~~~~^
+        base_mapper,
+        ^^^^^^^^^^^^
+    ...<3 lines>...
+        update,
+        ^^^^^^^
+    )
+    ^
+  File "/Users/guyin/Desktop/Echooo/repo/confyUI-flow-back/backend/.venv/lib/python3.13/site-packages/sqlalchemy/orm/persistence.py", line 912, in _emit_update_statements
+    c = connection.execute(
+        statement, multiparams, execution_options=execution_options
+    )
+  File "/Users/guyin/Desktop/Echooo/repo/confyUI-flow-back/backend/.venv/lib/python3.13/site-packages/sqlalchemy/engine/base.py", line 1416, in execute
+    return meth(
+        self,
+        distilled_parameters,
+        execution_options or NO_OPTIONS,
+    )
+  File "/Users/guyin/Desktop/Echooo/repo/confyUI-flow-back/backend/.venv/lib/python3.13/site-packages/sqlalchemy/sql/elements.py", line 516, in _execute_on_connection
+    return connection._execute_clauseelement(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        self, distilled_params, execution_options
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/guyin/Desktop/Echooo/repo/confyUI-flow-back/backend/.venv/lib/python3.13/site-packages/sqlalchemy/engine/base.py", line 1638, in _execute_clauseelement
+    ret = self._execute_context(
+        dialect,
+    ...<8 lines>...
+        cache_hit=cache_hit,
+    )
+  File "/Users/guyin/Desktop/Echooo/repo/confyUI-flow-back/backend/.venv/lib/python3.13/site-packages/sqlalchemy/engine/base.py", line 1843, in _execute_context
+    return self._exec_single_context(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~^
+        dialect, context, statement, parameters
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/guyin/Desktop/Echooo/repo/confyUI-flow-back/backend/.venv/lib/python3.13/site-packages/sqlalchemy/engine/base.py", line 1983, in _exec_single_context
+    self._handle_dbapi_exception(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        e, str_statement, effective_parameters, cursor, context
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/guyin/Desktop/Echooo/repo/confyUI-flow-back/backend/.venv/lib/python3.13/site-packages/sqlalchemy/engine/base.py", line 2352, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "/Users/guyin/Desktop/Echooo/repo/confyUI-flow-back/backend/.venv/lib/python3.13/site-packages/sqlalchemy/engine/base.py", line 1964, in _exec_single_context
+    self.dialect.do_execute(
+    ~~~~~~~~~~~~~~~~~~~~~~~^
+        cursor, str_statement, effective_parameters, context
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/guyin/Desktop/Echooo/repo/confyUI-flow-back/backend/.venv/lib/python3.13/site-packages/sqlalchemy/engine/default.py", line 942, in do_execute
+    cursor.execute(statement, parameters)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/guyin/Desktop/Echooo/repo/confyUI-flow-back/backend/.venv/lib/python3.13/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 580, in execute
+    self._adapt_connection.await_(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        self._prepare_and_execute(operation, parameters)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/guyin/Desktop/Echooo/repo/confyUI-flow-back/backend/.venv/lib/python3.13/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 132, in await_only
+    return current.parent.switch(awaitable)  # type: ignore[no-any-return,attr-defined] # noqa: E501
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "/Users/guyin/Desktop/Echooo/repo/confyUI-flow-back/backend/.venv/lib/python3.13/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 196, in greenlet_spawn
+    value = await result
+            ^^^^^^^^^^^^
+  File "/Users/guyin/Desktop/Echooo/repo/confyUI-flow-back/backend/.venv/lib/python3.13/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 558, in _prepare_and_execute
+    self._handle_exception(error)
+    ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^
+  File "/Users/guyin/Desktop/Echooo/repo/confyUI-flow-back/backend/.venv/lib/python3.13/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 508, in _handle_exception
+    self._adapt_connection._handle_exception(error)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^
+  File "/Users/guyin/Desktop/Echooo/repo/confyUI-flow-back/backend/.venv/lib/python3.13/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 792, in _handle_exception
+    raise translated_error from error
+sqlalchemy.exc.DBAPIError: (sqlalchemy.dialects.postgresql.asyncpg.Error) <class 'asyncpg.exceptions.InvalidTextRepresentationError'>: invalid input value for enum task_status: "fail"
+[SQL: UPDATE tasks SET status=$1::task_status, comfy_message=$2::VARCHAR, execution_state=$3::VARCHAR, updated_at=$4::TIMESTAMP WITH TIME ZONE WHERE tasks.id = $5::UUID]
+[parameters: ('fail', 'Lost connection to ComfyUI before completion', '{"task_id": "5dbaba03-328d-4176-904a-9eb9eff471aa", "status": "fail", "prompt_id": "02530bc3-c297-418f-8640-58a95396b9f8", "prompt_ids": ["02530bc3-c ... (988 characters truncated) ...  {"time": "20:37:47", "message": "Lost connection to ComfyUI before completion", "type": "error"}], "updated_at": "2026-02-26T12:37:47.138204+00:00"}', datetime.datetime(2026, 2, 26, 12, 37, 47, 236042, tzinfo=datetime.timezone.utc), UUID('5dbaba03-328d-4176-904a-9eb9eff471aa'))]
+(Background on this error at: https://sqlalche.me/e/20/dbapi)

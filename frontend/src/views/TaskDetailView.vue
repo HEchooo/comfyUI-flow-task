@@ -52,6 +52,7 @@
       <div v-if="task.workflow_json" class="workflow-banner">
         <el-icon class="workflow-icon"><Document /></el-icon>
         <span class="workflow-label">ComfyUI 工作流已配置</span>
+        <el-tag size="small" type="info">{{ task.workflow_filename || 'workflow.json' }}</el-tag>
         <el-tag size="small" type="success">{{ Object.keys(task.workflow_json).length }} 个节点</el-tag>
         <el-button text type="primary" size="small" @click="workflowJsonDialog = true">查看 JSON</el-button>
       </div>

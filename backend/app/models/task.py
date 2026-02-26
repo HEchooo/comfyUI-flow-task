@@ -25,6 +25,7 @@ class Task(Base):
     extra: Mapped[dict] = mapped_column(JSON, default=dict)
     execution_state: Mapped[str | None] = mapped_column(Text, nullable=True)
     workflow_json: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    workflow_filename: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, nullable=False)
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=utcnow, onupdate=utcnow, nullable=False

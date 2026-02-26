@@ -73,6 +73,7 @@ class TaskCreate(BaseModel):
     extra: dict = Field(default_factory=dict)
     subtasks: list[SubTaskCreate] = Field(default_factory=list)
     workflow_json: dict | None = None
+    workflow_filename: str | None = None
 
 
 class TaskPatch(BaseModel):
@@ -81,6 +82,7 @@ class TaskPatch(BaseModel):
     extra: dict | None = None
     subtasks: list[SubTaskCreate] | None = None
     workflow_json: dict | None = None
+    workflow_filename: str | None = None
 
 
 class TaskRead(BaseModel):
@@ -92,6 +94,7 @@ class TaskRead(BaseModel):
     extra: dict
     execution_state: str | None = None
     workflow_json: dict | None
+    workflow_filename: str | None = None
     created_at: datetime
     updated_at: datetime
     subtasks: list[SubTaskRead] = Field(default_factory=list)

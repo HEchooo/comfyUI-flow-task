@@ -49,10 +49,14 @@ const props = defineProps({
   modelValue: {
     type: Object,
     default: null
+  },
+  filename: {
+    type: String,
+    default: ''
   }
 })
 
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits(['update:modelValue', 'update:filename'])
 
 const fileInput = ref(null)
 const isDragover = ref(false)
@@ -64,12 +68,14 @@ const nodeCount = ref(0)
 // When modelValue is set externally (e.g., loaded from server after page refresh),
 // derive nodeCount from the JSON keys and show a fallback filename.
 watch(
-  () => props.modelValue,
-  (newVal) => {
-    if (newVal) {
-      const count = Object.keys(newVal).length
+  () => [props.modelValue, props.filename],
+  ([workflowJson, filename]) => {
+    if (workflowJson) {
+      const count = Object.keys(workflowJson).length
       nodeCount.value = count
-      if (!uploadedFilename.value) {
+      if (filename) {
+        uploadedFilename.value = filename
+      } else if (!uploadedFilename.value) {
         uploadedFilename.value = 'workflow.json'
       }
     } else {
@@ -120,6 +126,7 @@ async function upload(file) {
     uploadedFilename.value = result.filename
     nodeCount.value = result.node_count
     emit('update:modelValue', result.workflow_json)
+    emit('update:filename', result.filename)
     ElMessage.success(`工作流已上传（${result.node_count} 个节点）`)
   } catch (error) {
     if (isDuplicateRequestError(error)) return
@@ -133,6 +140,7 @@ function handleRemove() {
   uploadedFilename.value = ''
   nodeCount.value = 0
   emit('update:modelValue', null)
+  emit('update:filename', '')
 }
 </script>
 

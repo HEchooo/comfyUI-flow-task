@@ -13,7 +13,7 @@ from app.models.task import Task
 from app.models.task_template import TaskTemplate
 from app.schemas.task import TaskTemplateCreate, TaskTemplateCreateTaskRequest, TaskTemplatePatch
 from app.services.status import aggregate_parent_status
-from app.services.task_service import get_task_or_404
+from app.services.task_service import bind_task_id_to_workflow, get_task_or_404
 
 
 def _parse_publish_at(value: object) -> datetime | None:
@@ -133,6 +133,7 @@ async def create_task_from_template(
     )
     session.add(task)
     await session.flush()
+    task.workflow_json, _, _ = bind_task_id_to_workflow(task.workflow_json, task.id)
 
     for item in template.subtasks or []:
         subtask = SubTask(
