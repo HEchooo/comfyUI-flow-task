@@ -18,6 +18,10 @@
         <el-input v-model="form.description" type="textarea" :rows="3" />
       </el-form-item>
 
+      <el-form-item label="ComfyUI 工作流">
+        <WorkflowUpload v-model="form.workflow_json" />
+      </el-form-item>
+
       <div class="subtask-header">
         <h3>工作流子任务</h3>
         <el-button type="primary" plain @click="addSubtask">新增子任务</el-button>
@@ -106,6 +110,7 @@ import { computed, onMounted, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 
+import WorkflowUpload from '../components/WorkflowUpload.vue'
 import { isDuplicateRequestError } from '../api/http'
 import { createTaskTemplate, fetchTaskTemplate, patchTaskTemplate } from '../api/templates'
 import { renderMarkdown } from '../utils/markdown'
@@ -118,6 +123,7 @@ const isEdit = computed(() => Boolean(route.params.id))
 const form = reactive({
   title: '',
   description: '',
+  workflow_json: null,
   subtasks: []
 })
 
@@ -173,6 +179,7 @@ function normalizePayload() {
   return {
     title: form.title,
     description: form.description,
+    workflow_json: form.workflow_json || null,
     subtasks: form.subtasks.map((item) => ({
       platform: item.platform,
       account_name: item.account_name,
@@ -223,6 +230,7 @@ async function loadDetail() {
     const data = await fetchTaskTemplate(route.params.id)
     form.title = data.title
     form.description = data.description || ''
+    form.workflow_json = data.workflow_json || null
     form.subtasks = (data.subtasks || []).map((item) => ({
       platform: item.platform,
       account_name: item.account_name,

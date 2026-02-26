@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+import json
+
 from fastapi import APIRouter, File, HTTPException, Request, UploadFile, status
 
-from app.schemas.upload import UploadImageBase64Request, UploadImageResponse
+from app.schemas.upload import UploadImageBase64Request, UploadImageResponse, WorkflowUploadResponse
 from app.services.upload_service import UpstreamImageUploadService, decode_base64_image
 
 router = APIRouter(prefix="/uploads", tags=["uploads"])
@@ -41,4 +43,36 @@ async def upload_image_api(request: Request, file: UploadFile | None = File(defa
     raise HTTPException(
         status_code=status.HTTP_400_BAD_REQUEST,
         detail="Send either multipart file or application/json with base64_data",
+    )
+
+
+@router.post("/workflow", response_model=WorkflowUploadResponse)
+async def upload_workflow(file: UploadFile = File(...)) -> WorkflowUploadResponse:
+    if not file.filename.endswith(".json"):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Only .json files are supported",
+        )
+
+    content = await file.read()
+    try:
+        workflow_json = json.loads(content.decode("utf-8"))
+    except (json.JSONDecodeError, UnicodeDecodeError) as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Invalid JSON file: {str(e)}",
+        )
+
+    if not isinstance(workflow_json, dict):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Workflow JSON must be an object (ComfyUI API format)",
+        )
+
+    node_count = len(workflow_json)
+
+    return WorkflowUploadResponse(
+        workflow_json=workflow_json,
+        node_count=node_count,
+        filename=file.filename,
     )

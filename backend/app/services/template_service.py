@@ -82,6 +82,7 @@ async def create_template(session: AsyncSession, payload: TaskTemplateCreate) ->
         description=payload.description,
         extra=payload.extra,
         subtasks=[item.model_dump(mode="json") for item in payload.subtasks],
+        workflow_json=payload.workflow_json,
     )
     session.add(template)
     await session.commit()
@@ -102,6 +103,8 @@ async def patch_template(
         template.extra = payload.extra
     if payload.subtasks is not None:
         template.subtasks = [item.model_dump(mode="json") for item in payload.subtasks]
+    if payload.workflow_json is not None:
+        template.workflow_json = payload.workflow_json
 
     await session.commit()
     return await get_template_or_404(session, template.id)
@@ -126,6 +129,7 @@ async def create_task_from_template(
         description=payload.description if payload.description is not None else template.description,
         status=TaskStatus.pending,
         extra=payload.extra if payload.extra is not None else (template.extra or {}),
+        workflow_json=template.workflow_json,
     )
     session.add(task)
     await session.flush()

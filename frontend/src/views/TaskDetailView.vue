@@ -10,6 +10,28 @@
           <el-button @click="$router.push('/')">返回列表</el-button>
           <el-button type="danger" plain :loading="deleting" :disabled="!task.id || deleting" @click="handleDelete">删除</el-button>
           <el-button type="primary" @click="$router.push(`/tasks/${task.id}/edit`)" :disabled="!task.id">编辑</el-button>
+          <el-tooltip v-if="canExecute" :content="!task.workflow_json ? '请先上传工作流' : '执行 ComfyUI 工作流'" placement="top">
+            <span>
+              <el-button
+                type="success"
+                :disabled="!task.id || !task.workflow_json || executing || cancelling"
+                :loading="executing"
+                @click="handleExecute"
+              >
+                执行
+              </el-button>
+            </span>
+          </el-tooltip>
+          <el-button
+            v-if="task.status === 'running'"
+            type="warning"
+            plain
+            :disabled="!task.id || cancelling || executing"
+            :loading="cancelling"
+            @click="handleCancel"
+          >
+            取消执行
+          </el-button>
         </div>
       </div>
     </template>
@@ -25,6 +47,22 @@
         <el-descriptions-item label="更新时间">{{ formatTime(task.updated_at) }}</el-descriptions-item>
         <el-descriptions-item label="描述" :span="2">{{ task.description || '-' }}</el-descriptions-item>
       </el-descriptions>
+
+      <!-- Workflow info -->
+      <div v-if="task.workflow_json" class="workflow-banner">
+        <el-icon class="workflow-icon"><Document /></el-icon>
+        <span class="workflow-label">ComfyUI 工作流已配置</span>
+        <el-tag size="small" type="success">{{ Object.keys(task.workflow_json).length }} 个节点</el-tag>
+        <el-button text type="primary" size="small" @click="workflowJsonDialog = true">查看 JSON</el-button>
+      </div>
+      <div v-else class="workflow-banner workflow-banner--empty">
+        <el-icon><Warning /></el-icon>
+        <span>未配置 ComfyUI 工作流，前往编辑页面上传</span>
+      </div>
+
+      <div v-if="showProgressPanel" class="detail-progress">
+        <ExecutionProgress inline :task-id="String(task.id)" :active="true" />
+      </div>
 
       <h3 class="section-title">子任务列表</h3>
       <div v-if="!task.subtasks?.length">
@@ -114,15 +152,23 @@
     <el-dialog v-model="resultJsonDialog.visible" :title="resultJsonDialog.title" width="min(820px, 94vw)" append-to-body>
       <pre class="result-json-dialog">{{ resultJsonDialog.content }}</pre>
     </el-dialog>
+
+    <el-dialog v-model="workflowJsonDialog" title="工作流 JSON" width="min(820px, 94vw)" append-to-body>
+      <pre class="result-json-dialog">{{ workflowJsonPreview }}</pre>
+    </el-dialog>
   </el-card>
+
 </template>
 
 <script setup>
-import { onMounted, reactive, ref } from 'vue'
+import { computed, nextTick, onMounted, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { Document, Warning } from '@element-plus/icons-vue'
 
+import ExecutionProgress from '../components/ExecutionProgress.vue'
 import { deleteTask, fetchTask } from '../api/tasks'
+import { cancelExecutionTask, executeTask } from '../api/execution'
 import { isDuplicateRequestError } from '../api/http'
 import { renderMarkdown } from '../utils/markdown'
 import { taskStatusType } from '../utils/status'
@@ -131,7 +177,11 @@ const route = useRoute()
 const router = useRouter()
 const loading = ref(false)
 const deleting = ref(false)
+const executing = ref(false)
+const cancelling = ref(false)
 const task = reactive({})
+const workflowJsonDialog = ref(false)
+
 const previewDialog = reactive({
   visible: false,
   title: 'Markdown 预览',
@@ -142,6 +192,16 @@ const resultJsonDialog = reactive({
   title: '子任务结果 JSON',
   content: ''
 })
+
+const workflowJsonPreview = computed(() => {
+  if (!task.workflow_json) return ''
+  return JSON.stringify(task.workflow_json, null, 2)
+})
+
+const canExecute = computed(() => task.status === 'pending' || task.status === 'fail' || task.status === 'cancelled')
+const showProgressPanel = computed(
+  () => Boolean(task.id) && (task.status !== 'pending' || Boolean(task.execution_state))
+)
 
 function formatTime(value) {
   if (!value) return '-'
@@ -232,6 +292,59 @@ async function loadData() {
   }
 }
 
+async function handleExecute() {
+  if (executing.value) return
+  try {
+    await ElMessageBox.confirm(
+      `确认执行任务「${task.title}」的 ComfyUI 工作流？`,
+      '执行确认',
+      { confirmButtonText: '执行', cancelButtonText: '取消' }
+    )
+  } catch {
+    return
+  }
+
+  executing.value = true
+  try {
+    task.status = 'running'
+    await nextTick()
+    await executeTask(task.id)
+    await loadData()
+  } catch (error) {
+    task.status = 'fail'
+    if (isDuplicateRequestError(error)) return
+    ElMessage.error(error?.response?.data?.detail || '执行失败')
+  } finally {
+    executing.value = false
+  }
+}
+
+async function handleCancel() {
+  if (cancelling.value || !task.id) return
+  try {
+    await ElMessageBox.confirm(
+      `确认取消任务「${task.title}」当前执行？`,
+      '取消执行',
+      { confirmButtonText: '确认取消', cancelButtonText: '返回', type: 'warning' }
+    )
+  } catch {
+    return
+  }
+
+  cancelling.value = true
+  try {
+    await cancelExecutionTask(task.id)
+    task.status = 'cancelled'
+    ElMessage.success('已发送取消请求')
+    await loadData()
+  } catch (error) {
+    if (isDuplicateRequestError(error)) return
+    ElMessage.error(error?.response?.data?.detail || '取消执行失败')
+  } finally {
+    cancelling.value = false
+  }
+}
+
 async function handleDelete() {
   const subtaskCount = task.subtasks?.length || 0
   try {
@@ -289,6 +402,41 @@ onMounted(loadData)
 .actions {
   display: flex;
   gap: 8px;
+  flex-wrap: wrap;
+}
+
+.workflow-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  margin-top: 14px;
+  border: 1px solid #b3d4f5;
+  border-radius: 10px;
+  background: #f0f8ff;
+  font-size: 13px;
+  color: #1a3f6f;
+  flex-wrap: wrap;
+}
+
+.workflow-banner--empty {
+  border-color: #f0c8a0;
+  background: #fffbf5;
+  color: #8a5c20;
+}
+
+.workflow-icon {
+  font-size: 18px;
+  color: #409eff;
+  flex-shrink: 0;
+}
+
+.workflow-label {
+  font-weight: 600;
+}
+
+.detail-progress {
+  margin-top: 12px;
 }
 
 .section-title {

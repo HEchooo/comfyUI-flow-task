@@ -21,7 +21,26 @@
       <el-button type="primary" :loading="loading" :disabled="loading" @click="loadTasks">查询</el-button>
     </div>
 
-    <el-table :data="rows" v-loading="loading" border class="task-table">
+    <el-table
+      :data="rows"
+      v-loading="loading"
+      border
+      class="task-table"
+      :row-key="getRowKey"
+      :expand-row-keys="expandedRowKeys"
+      @expand-change="onExpandChange"
+    >
+      <el-table-column type="expand" width="44">
+        <template #default="scope">
+          <div class="row-progress-wrap">
+            <ExecutionProgress
+              inline
+              :task-id="String(scope.row.id)"
+              :active="isExpanded(scope.row.id)"
+            />
+          </div>
+        </template>
+      </el-table-column>
       <el-table-column prop="id" label="任务ID" min-width="250" />
       <el-table-column prop="title" label="标题" min-width="180" />
       <el-table-column prop="status" label="状态" width="120">
@@ -33,10 +52,37 @@
       <el-table-column prop="created_at" label="创建时间" min-width="200">
         <template #default="scope">{{ formatTime(scope.row.created_at) }}</template>
       </el-table-column>
-      <el-table-column label="操作" width="220" fixed="right">
+      <el-table-column label="操作" width="360" fixed="right">
         <template #default="scope">
-          <el-button link type="primary" :disabled="loading || deletingTaskId === scope.row.id" @click="$router.push(`/tasks/${scope.row.id}`)">详情</el-button>
-          <el-button link :disabled="loading || deletingTaskId === scope.row.id" @click="$router.push(`/tasks/${scope.row.id}/edit`)">编辑</el-button>
+          <el-button link type="primary" :disabled="loading || deletingTaskId === scope.row.id || cancellingTaskId === scope.row.id" @click="$router.push(`/tasks/${scope.row.id}`)">详情</el-button>
+          <el-button link :disabled="loading || deletingTaskId === scope.row.id || cancellingTaskId === scope.row.id" @click="$router.push(`/tasks/${scope.row.id}/edit`)">编辑</el-button>
+          <el-button
+            v-if="scope.row.status === 'running'"
+            link
+            type="warning"
+            :disabled="loading || cancellingTaskId === scope.row.id"
+            :loading="cancellingTaskId === scope.row.id"
+            @click="handleCancel(scope.row)"
+          >
+            取消执行
+          </el-button>
+          <el-tooltip
+            v-else-if="canExecute(scope.row)"
+            :content="!scope.row.has_workflow ? '请先上传工作流' : '执行 ComfyUI 工作流'"
+            placement="top"
+          >
+            <span>
+                <el-button
+                  link
+                  type="success"
+                  :disabled="loading || !scope.row.has_workflow || executingTaskId === scope.row.id || cancellingTaskId === scope.row.id"
+                  :loading="executingTaskId === scope.row.id"
+                  @click="handleExecute(scope.row)"
+                >
+                  执行
+                </el-button>
+            </span>
+          </el-tooltip>
           <el-button
             link
             type="danger"
@@ -61,18 +107,25 @@
       />
     </div>
   </el-card>
+
 </template>
 
 <script setup>
-import { onMounted, reactive, ref } from 'vue'
+import { nextTick, onMounted, reactive, ref } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
+import ExecutionProgress from '../components/ExecutionProgress.vue'
 import { deleteTask, fetchTasks } from '../api/tasks'
+import { cancelExecutionTask, executeTask } from '../api/execution'
 import { isDuplicateRequestError } from '../api/http'
 import { TASK_STATUS_OPTIONS, taskStatusType } from '../utils/status'
+
 const loading = ref(false)
 const rows = ref([])
 const deletingTaskId = ref('')
+const executingTaskId = ref('')
+const cancellingTaskId = ref('')
+const expandedRowKeys = ref([])
 
 const filters = reactive({
   taskId: '',
@@ -88,6 +141,34 @@ const pagination = reactive({
 function formatTime(value) {
   if (!value) return '-'
   return new Date(value).toLocaleString()
+}
+
+function getRowKey(row) {
+  return String(row.id)
+}
+
+function isExpanded(taskId) {
+  const key = String(taskId)
+  return expandedRowKeys.value.includes(key)
+}
+
+function openProgress(taskId) {
+  const key = String(taskId)
+  expandedRowKeys.value = [key]
+}
+
+function canExecute(row) {
+  return row.status === 'pending' || row.status === 'fail' || row.status === 'cancelled'
+}
+
+function onExpandChange(row, expandedRows) {
+  const rowId = String(row.id)
+  const expanded = expandedRows.some((item) => String(item.id) === rowId)
+  if (expanded) {
+    expandedRowKeys.value = [rowId]
+    return
+  }
+  expandedRowKeys.value = expandedRowKeys.value.filter((key) => key !== rowId)
 }
 
 async function loadTasks() {
@@ -112,6 +193,61 @@ async function loadTasks() {
 function onPageChange(page) {
   pagination.page = page
   loadTasks()
+}
+
+async function handleExecute(row) {
+  if (executingTaskId.value) return
+  try {
+    await ElMessageBox.confirm(
+      `确认执行任务「${row.title}」的 ComfyUI 工作流？`,
+      '执行确认',
+      { confirmButtonText: '执行', cancelButtonText: '取消' }
+    )
+  } catch {
+    return
+  }
+
+  executingTaskId.value = row.id
+  try {
+    openProgress(row.id)
+    row.status = 'running'
+    await nextTick()
+    await executeTask(row.id)
+    await loadTasks()
+  } catch (error) {
+    row.status = 'fail'
+    if (isDuplicateRequestError(error)) return
+    ElMessage.error(error?.response?.data?.detail || '执行失败')
+  } finally {
+    executingTaskId.value = ''
+  }
+}
+
+async function handleCancel(row) {
+  if (cancellingTaskId.value) return
+  try {
+    await ElMessageBox.confirm(
+      `确认取消任务「${row.title}」当前执行？`,
+      '取消执行',
+      { confirmButtonText: '确认取消', cancelButtonText: '返回', type: 'warning' }
+    )
+  } catch {
+    return
+  }
+
+  cancellingTaskId.value = row.id
+  try {
+    await cancelExecutionTask(row.id)
+    row.status = 'cancelled'
+    openProgress(row.id)
+    ElMessage.success('已发送取消请求')
+    await loadTasks()
+  } catch (error) {
+    if (isDuplicateRequestError(error)) return
+    ElMessage.error(error?.response?.data?.detail || '取消执行失败')
+  } finally {
+    cancellingTaskId.value = ''
+  }
 }
 
 async function handleDelete(row) {
@@ -198,6 +334,10 @@ onMounted(loadTasks)
 .task-table {
   border-radius: 12px;
   overflow: hidden;
+}
+
+.row-progress-wrap {
+  padding: 4px 6px;
 }
 
 .pagination {

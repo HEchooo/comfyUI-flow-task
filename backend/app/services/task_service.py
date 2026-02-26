@@ -112,6 +112,7 @@ async def create_task(session: AsyncSession, payload: TaskCreate) -> Task:
         description=payload.description,
         status=TaskStatus.pending,
         extra=payload.extra,
+        workflow_json=payload.workflow_json,
     )
     session.add(task)
     await session.flush()
@@ -146,6 +147,7 @@ async def list_tasks(
         Task.created_at,
         Task.updated_at,
         count_subtasks.label("subtask_count"),
+        Task.workflow_json.isnot(None).label("has_workflow"),
     )
     total_stmt = select(func.count(Task.id))
 
@@ -170,6 +172,7 @@ async def list_tasks(
             "created_at": row.created_at,
             "updated_at": row.updated_at,
             "subtask_count": int(row.subtask_count or 0),
+            "has_workflow": bool(row.has_workflow),
         }
         for row in rows
     ]
@@ -201,6 +204,9 @@ async def patch_task(session: AsyncSession, task: Task, payload: TaskPatch) -> T
         changed = True
     if payload.extra is not None:
         task.extra = payload.extra
+        changed = True
+    if payload.workflow_json is not None:
+        task.workflow_json = payload.workflow_json
         changed = True
 
     if payload.subtasks is not None:

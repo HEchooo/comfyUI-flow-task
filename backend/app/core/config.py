@@ -22,6 +22,8 @@ class Settings(BaseSettings):
     cors_origins: str = "http://localhost:5173"
     auto_create_tables: bool = True
 
+    comfyui_api_base_url: str = "http://34.59.208.230:8189"
+
     @property
     def max_image_size_bytes(self) -> int:
         return self.max_image_size_mb * 1024 * 1024
@@ -29,6 +31,15 @@ class Settings(BaseSettings):
     @property
     def upload_api_url(self) -> str:
         return f"{self.upload_api_base_url.rstrip('/')}/api/v1/video/upload-image"
+
+    @property
+    def comfyui_api_url(self) -> str:
+        return f"{self.comfyui_api_base_url.rstrip('/')}/api/prompt"
+
+    @property
+    def comfyui_ws_url(self) -> str:
+        base = self.comfyui_api_base_url.replace("http://", "ws://").replace("https://", "wss://")
+        return f"{base.rstrip('/')}/ws"
 
     @property
     def cors_origins_list(self) -> list[str]:

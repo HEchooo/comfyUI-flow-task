@@ -28,6 +28,10 @@
         </div>
       </el-form-item>
 
+      <el-form-item label="ComfyUI 工作流">
+        <WorkflowUpload v-model="form.workflow_json" />
+      </el-form-item>
+
       <div class="subtask-header">
         <h3>子任务</h3>
         <el-button type="primary" plain @click="addSubtask">新增子任务</el-button>
@@ -121,6 +125,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { ElLoading, ElMessage } from 'element-plus'
 
 import PhotoInput from '../components/PhotoInput.vue'
+import WorkflowUpload from '../components/WorkflowUpload.vue'
 import { isDuplicateRequestError } from '../api/http'
 import { createTask, fetchTask, patchTask, uploadImageByFile } from '../api/tasks'
 import { fetchTaskTemplate, fetchTaskTemplates } from '../api/templates'
@@ -134,6 +139,7 @@ const applyingTemplate = ref(false)
 const form = reactive({
   title: '',
   description: '',
+  workflow_json: null,
   subtasks: []
 })
 const templateOptions = ref([])
@@ -190,6 +196,7 @@ async function applyTemplate() {
     const template = await fetchTaskTemplate(selectedTemplateId.value)
     form.title = template.title
     form.description = template.description || ''
+    form.workflow_json = template.workflow_json || null
     form.subtasks = (template.subtasks || []).map(mapTemplateSubtask)
     if (!form.subtasks.length) {
       addSubtask()
@@ -228,6 +235,7 @@ function normalizePayload() {
   return {
     title: form.title,
     description: form.description,
+    workflow_json: form.workflow_json || null,
     subtasks: form.subtasks.map((item) => ({
       platform: item.platform,
       account_name: item.account_name,
@@ -345,6 +353,7 @@ async function loadDetail() {
     const data = await fetchTask(route.params.id)
     form.title = data.title
     form.description = data.description || ''
+    form.workflow_json = data.workflow_json || null
     form.subtasks = data.subtasks.map((item) => ({
       platform: item.platform,
       account_name: item.account_name,

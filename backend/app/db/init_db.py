@@ -14,3 +14,6 @@ async def init_db() -> None:
         await conn.execute(text("ALTER TABLE subtasks ADD COLUMN IF NOT EXISTS result JSONB NOT NULL DEFAULT '{}'"))
         await conn.execute(text("ALTER TABLE tasks DROP COLUMN IF EXISTS execution_count"))
         await conn.execute(text("ALTER TABLE tasks DROP COLUMN IF EXISTS version"))
+        await conn.execute(text("ALTER TABLE tasks ADD COLUMN IF NOT EXISTS workflow_json JSONB"))
+        await conn.execute(text("ALTER TABLE tasks ADD COLUMN IF NOT EXISTS execution_state TEXT"))
+        await conn.execute(text("ALTER TABLE task_templates ADD COLUMN IF NOT EXISTS workflow_json JSONB"))

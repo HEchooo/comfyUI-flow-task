@@ -8,6 +8,7 @@ class TaskStatus(StrEnum):
     running = "running"
     success = "success"
     fail = "fail"
+    cancelled = "cancelled"
 
 
 class PhotoSourceType(StrEnum):

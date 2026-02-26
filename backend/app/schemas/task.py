@@ -72,6 +72,7 @@ class TaskCreate(BaseModel):
     description: str | None = None
     extra: dict = Field(default_factory=dict)
     subtasks: list[SubTaskCreate] = Field(default_factory=list)
+    workflow_json: dict | None = None
 
 
 class TaskPatch(BaseModel):
@@ -79,6 +80,7 @@ class TaskPatch(BaseModel):
     description: str | None = None
     extra: dict | None = None
     subtasks: list[SubTaskCreate] | None = None
+    workflow_json: dict | None = None
 
 
 class TaskRead(BaseModel):
@@ -88,6 +90,8 @@ class TaskRead(BaseModel):
     status: TaskStatus
     comfy_message: str | None
     extra: dict
+    execution_state: str | None = None
+    workflow_json: dict | None
     created_at: datetime
     updated_at: datetime
     subtasks: list[SubTaskRead] = Field(default_factory=list)
@@ -102,6 +106,7 @@ class TaskListItem(BaseModel):
     created_at: datetime
     updated_at: datetime
     subtask_count: int
+    has_workflow: bool
 
 
 class TaskListResponse(BaseModel):
@@ -187,6 +192,7 @@ class TaskTemplateCreate(BaseModel):
     description: str | None = None
     extra: dict = Field(default_factory=dict)
     subtasks: list[TemplateSubTaskBase] = Field(default_factory=list)
+    workflow_json: dict | None = None
 
 
 class TaskTemplatePatch(BaseModel):
@@ -194,6 +200,7 @@ class TaskTemplatePatch(BaseModel):
     description: str | None = None
     extra: dict | None = None
     subtasks: list[TemplateSubTaskBase] | None = None
+    workflow_json: dict | None = None
 
 
 class TaskTemplateRead(BaseModel):
@@ -202,6 +209,7 @@ class TaskTemplateRead(BaseModel):
     description: str | None
     extra: dict
     subtasks: list[TemplateSubTaskBase]
+    workflow_json: dict | None
     created_at: datetime
     updated_at: datetime
     model_config = ConfigDict(from_attributes=True)

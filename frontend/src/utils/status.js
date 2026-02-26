@@ -2,7 +2,8 @@ export const TASK_STATUS_OPTIONS = [
   { label: 'pending', value: 'pending', type: 'warning' },
   { label: 'running', value: 'running', type: 'primary' },
   { label: 'success', value: 'success', type: 'success' },
-  { label: 'fail', value: 'fail', type: 'danger' }
+  { label: 'fail', value: 'fail', type: 'danger' },
+  { label: 'cancelled', value: 'cancelled', type: 'info' }
 ]
 
 export function taskStatusType(status) {
