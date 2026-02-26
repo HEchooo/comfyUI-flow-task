@@ -1,234 +1,260 @@
-# ComfyUI 任务管理系统
+# ComfyUI Flow Task Manager
 
-本项目包含：
+本仓库是完整的前后端项目：
 
-- 后端：FastAPI + SQLAlchemy + PostgreSQL(JSONB)
+- 后端：FastAPI + SQLAlchemy + Alembic + PostgreSQL
 - 前端：Vue 3 + Vite + Element Plus
+- 进程管理：systemd（`flow-task` / `flow-task-web`）
+- 反向代理：Nginx
 
-## 1）本地启动 PostgreSQL（Docker）
+目录：
+
+- `backend/`：后端代码与 Alembic
+- `frontend/`：前端代码
+- `deploy/systemd/`：systemd 服务模板
+
+## 1. 服务器一次性部署
+
+以下示例以 Ubuntu 为例，项目路径用：
+
+`/home/dudewei/projects/comfyUI-flow-task`
+
+请按你的实际路径替换。
+
+### 1.1 拉取代码
 
 ```bash
-docker run -d \
-  --name task-manager-postgres \
-  -e POSTGRES_USER=postgres \
-  -e POSTGRES_PASSWORD=postgres \
-  -e POSTGRES_DB=task_manager \
-  -p 5432:5432 \
-  -v task_manager_pgdata:/var/lib/postgresql/data \
-  postgres:16
+cd /home/dudewei/projects
+git clone <your-repo-url> comfyUI-flow-task
+cd comfyUI-flow-task
 ```
 
-停止/启动：
+### 1.2 配置后端
 
 ```bash
-docker stop task-manager-postgres
-docker start task-manager-postgres
-```
-
-## 2）后端启动
-
-```bash
-cd /Users/guyin/Desktop/Echooo/confyUI-flow-back/backend
+cd /home/dudewei/projects/comfyUI-flow-task/backend
 cp .env.example .env
+```
+
+编辑 `backend/.env`，至少确认这些项：
+
+- `DATABASE_URL`
+- `ADMIN_USERNAME`
+- `ADMIN_PASSWORD`
+- `AUTH_SECRET`
+- `COMFYUI_API_BASE_URL`
+- `CORS_ORIGINS`
+
+安装依赖并迁移数据库：
+
+```bash
 uv sync
 uv run alembic upgrade head
-uv run uvicorn app.main:app --reload --port 8000
 ```
 
-## 3）前端启动
-
-```bash
-cd /Users/guyin/Desktop/Echooo/confyUI-flow-back/frontend
-cp .env.example .env
-npm install
-npm run dev
-```
-
-## 4）核心接口
-
-鉴权相关：
-
-- `POST /api/v1/auth/login`
-
-任务相关：
-
-- `POST /api/v1/tasks`
-- `GET /api/v1/tasks`
-- `GET /api/v1/tasks/{task_id}`
-- `PATCH /api/v1/tasks/{task_id}`
-- `DELETE /api/v1/tasks/{task_id}`
-- `PATCH /api/v1/tasks/{task_id}/status`
-
-子任务相关：
-
-- `PATCH /api/v1/subtasks/{subtask_id}`
-- `PATCH /api/v1/subtasks/{subtask_id}/status`
-
-模板相关：
-
-- `POST /api/v1/task-templates`
-- `GET /api/v1/task-templates`
-- `GET /api/v1/task-templates/{template_id}`
-- `PATCH /api/v1/task-templates/{template_id}`
-- `DELETE /api/v1/task-templates/{template_id}`
-- `POST /api/v1/task-templates/{template_id}/create-task`
-
-上传相关：
-
-- `POST /api/v1/uploads/image`
-
-回调接口（免鉴权）：
-
-- `POST /api/v1/callbacks/subtask-status`
-- `POST /api/v1/callbacks/subtask-generated-images`
-
-## 5）鉴权说明
-
-当前后端业务接口不做鉴权拦截（不需要 `Authorization` 请求头）。
-
-前端仍保留登录页与路由拦截：必须先登录才能访问业务页面。
-
-`POST /api/v1/auth/login` 仅用于前端登录态控制。
-
-## 6）ComfyUI 节点可直接使用的 curl 示例
-
-1. 子任务状态回调（免鉴权）
-
-```bash
-curl --location --request POST 'http://localhost:8000/api/v1/callbacks/subtask-status' \
---header 'Content-Type: application/json' \
---data '{
-  "subtask_id": "11111111-2222-3333-4444-555555555555",
-  "status": "success",
-  "message": "workflow done",
-  "result": {
-    "output_url": "https://example.com/output.png",
-    "seed": 12345
-  }
-}'
-```
-
-2. 子任务生图结果回调（免鉴权，覆盖写入并按 `sort_order` 排序）
-
-```bash
-curl --location --request POST 'http://localhost:8000/api/v1/callbacks/subtask-generated-images' \
---header 'Content-Type: application/json' \
---data '{
-  "subtask_id": "11111111-2222-3333-4444-555555555555",
-  "images": [
-    {
-      "url": "https://example.com/generated_1.png",
-      "object_key": "comfy/result/generated_1.png",
-      "sort_order": 0,
-      "extra": {
-        "seed": 12345,
-        "step": 30
-      }
-    },
-    {
-      "url": "https://example.com/generated_2.png",
-      "sort_order": 1
-    }
-  ]
-}'
-```
-
-3. 按 `task_id` 查询任务详情（无需鉴权，返回中包含每个子任务的 `generated_images`）
-
-```bash
-curl --location --request GET 'http://35.224.68.88:8000/api/v1/tasks/{task_id}' \
---header 'Content-Type: application/json'
-```
-
-## 7）使用 systemctl 启动后端（服务名：flow-task）
-
-已提供 service 模板文件：
-
-- `deploy/systemd/flow-task.service`
-
-请先按你的服务器实际路径修改该文件中的以下字段：
-
-- `User` / `Group`
-- `WorkingDirectory`
-- `EnvironmentFile`
-- `ExecStart`
-
-示例部署步骤（Linux）：
-
-```bash
-# 1. 代码部署后，先准备后端依赖与数据库
-cd /opt/flow-task/backend
-cp .env.example .env
-uv sync
-uv run alembic upgrade head
-
-# 2. 安装 systemd 服务
-sudo cp /home/dudewei/projects/comfyUI-flow-task/deploy/systemd/flow-task.service /etc/systemd/system/flow-task.service
-sudo systemctl daemon-reload
-sudo systemctl enable --now flow-task
-
-# 3. 查看运行状态
-sudo systemctl status flow-task
-sudo journalctl -u flow-task -f
-```
-
-常用命令：
-
-```bash
-sudo systemctl restart flow-task
-sudo systemctl stop flow-task
-sudo systemctl start flow-task
-```
-
-## 8）使用 systemctl 启动前端（服务名：flow-task-web）
-
-已提供 service 模板文件：
-
-- `deploy/systemd/flow-task-web.service`
-
-默认通过 `vite preview` 在 `5173` 端口提供前端页面。
-
-请先确认前端生产环境变量（用于打包时写入 API 地址）：
+### 1.3 配置前端
 
 ```bash
 cd /home/dudewei/projects/comfyUI-flow-task/frontend
-cat > .env.production << 'EOF'
-VITE_API_BASE_URL=http://127.0.0.1:8000/api/v1
-EOF
+cp .env.example .env.production
+```
+
+如果你用 Nginx 做同域反代（推荐），设置为：
+
+```env
+VITE_API_BASE_URL=/api/v1
+```
+
+安装依赖：
+
+```bash
 npm install
 ```
 
-安装并启动前端服务：
+### 1.4 安装后端 systemd 服务
+
+先检查并按实际路径修改模板：
+
+- `deploy/systemd/flow-task.service`
+
+然后安装并启动：
+
+```bash
+sudo cp /home/dudewei/projects/comfyUI-flow-task/deploy/systemd/flow-task.service /etc/systemd/system/flow-task.service
+sudo systemctl daemon-reload
+sudo systemctl enable --now flow-task
+sudo systemctl status flow-task
+```
+
+### 1.5 安装前端 systemd 服务
+
+先检查并按实际路径修改模板：
+
+- `deploy/systemd/flow-task-web.service`
+
+然后安装并启动：
 
 ```bash
 sudo cp /home/dudewei/projects/comfyUI-flow-task/deploy/systemd/flow-task-web.service /etc/systemd/system/flow-task-web.service
 sudo systemctl daemon-reload
 sudo systemctl enable --now flow-task-web
-```
-
-查看状态与日志：
-
-```bash
 sudo systemctl status flow-task-web
-sudo journalctl -u flow-task-web -f
 ```
 
-常用命令：
+`flow-task-web` 当前通过 `npm run preview -- --host 0.0.0.0 --port 5173` 提供前端页面。
+
+### 1.6 安装并配置 Nginx
+
+安装：
 
 ```bash
-sudo systemctl restart flow-task-web
-sudo systemctl stop flow-task-web
-sudo systemctl start flow-task-web
+sudo apt update
+sudo apt install -y nginx
 ```
 
-## 9）后端日志说明
+创建站点配置（只有 IP 也可以，`server_name` 直接写 IP）：
 
-后端日志默认目录为：
+```bash
+sudo tee /etc/nginx/sites-available/flow-task <<'NGINX'
+server {
+    listen 80;
+    server_name 35.188.136.53;
 
-- `backend/logs`（可通过后端 `.env` 的 `LOG_DIR` 调整）
+    client_max_body_size 50m;
 
-日志文件规则：
+    location /api/ {
+        proxy_pass http://127.0.0.1:8000/api/;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
 
-- 当天日志固定写入：`app.log`
-- 每天 00:00 跨天轮转后，前一天日志文件名为：`YYYY_MM_DD.log`
-  例如：`2025_01_02.log`
+        # WebSocket 支持
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+
+        proxy_read_timeout 300s;
+        proxy_send_timeout 300s;
+    }
+
+    location / {
+        proxy_pass http://127.0.0.1:5173;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+NGINX
+```
+
+启用并重载：
+
+```bash
+sudo ln -sf /etc/nginx/sites-available/flow-task /etc/nginx/sites-enabled/flow-task
+sudo nginx -t
+sudo systemctl restart nginx
+```
+
+## 2. 日常运维命令
+
+查看状态：
+
+```bash
+sudo systemctl status flow-task
+sudo systemctl status flow-task-web
+sudo systemctl status nginx
+```
+
+查看日志：
+
+```bash
+sudo journalctl -u flow-task -f
+sudo journalctl -u flow-task-web -f
+sudo tail -f /var/log/nginx/access.log /var/log/nginx/error.log
+```
+
+重启服务：
+
+```bash
+sudo systemctl restart flow-task
+sudo systemctl restart flow-task-web
+sudo systemctl restart nginx
+```
+
+## 3. 更新代码后的标准流程（前后端）
+
+每次发版后，按下面步骤执行：
+
+```bash
+cd /home/dudewei/projects/comfyUI-flow-task
+git pull
+
+# 1) 后端：依赖 + 迁移 + 重启
+cd backend
+uv sync
+uv run alembic upgrade head
+sudo systemctl restart flow-task
+
+# 2) 前端：依赖 + 重启（服务会自动执行 build）
+cd ../frontend
+npm install
+sudo systemctl restart flow-task-web
+
+# 3) 反向代理重载（可选）
+sudo systemctl reload nginx
+```
+
+如果本次更新没有改前端依赖，`npm install` 可以跳过。
+
+## 4. 数据库迁移说明
+
+- 新环境：直接 `uv run alembic upgrade head`
+- 已有历史库：先确认当前状态，再执行升级
+
+```bash
+cd /home/dudewei/projects/comfyUI-flow-task/backend
+uv run alembic current
+uv run alembic history --verbose
+```
+
+## 5. 健康检查
+
+后端健康检查：
+
+```bash
+curl http://127.0.0.1:8000/healthz
+```
+
+通过 Nginx 检查：
+
+```bash
+curl http://35.188.136.53/healthz
+```
+
+返回 `{"status":"ok"}` 说明后端可用。
+
+## 6. 常见问题
+
+### 6.1 `ModuleNotFoundError: No module named 'app'`（执行 Alembic）
+
+确保在 `backend/` 目录执行命令：
+
+```bash
+cd /home/dudewei/projects/comfyUI-flow-task/backend
+uv run alembic upgrade head
+```
+
+### 6.2 前端请求到了 `https://IP:8000` 报 SSL 错误
+
+通常是前端 `VITE_API_BASE_URL` 配置错误。
+
+- 如果走 Nginx 反代，前端应配置：`VITE_API_BASE_URL=/api/v1`
+- 不要在无证书情况下直接请求 `https://<ip>:8000`
+
+### 6.3 CORS 要不要开
+
+- 如果前端与后端都走同一域名/IP 的 Nginx（前端 `/`，后端 `/api/`），通常不会触发跨域。
+- 仍建议保留后端 `CORS_ORIGINS` 正确配置，便于本地调试。
