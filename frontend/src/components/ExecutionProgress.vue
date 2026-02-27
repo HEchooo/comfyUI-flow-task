@@ -156,6 +156,7 @@ const currentPromptId = ref('')
 
 let ws = null
 let pingTimer = null
+let manualDisconnect = false
 
 const statusTagType = computed(() => {
   if (execStatus.value === 'completed') return 'success'
@@ -286,6 +287,7 @@ function connectWs() {
   disconnectWs()
   if (!props.taskId) return
 
+  manualDisconnect = false
   ws = createExecutionWs(props.taskId)
 
   ws.onopen = () => {
@@ -306,11 +308,15 @@ function connectWs() {
   }
 
   ws.onerror = () => {
-    addLog('WebSocket 连接错误', 'error')
-    execStatus.value = 'error'
+    if (manualDisconnect) return
+    if (execStatus.value === 'running') {
+      addLog('WebSocket 连接错误', 'error')
+      execStatus.value = 'error'
+    }
   }
 
   ws.onclose = () => {
+    if (manualDisconnect) return
     if (execStatus.value === 'running') {
       addLog('WebSocket 连接已断开', 'error')
       execStatus.value = 'error'
@@ -333,6 +339,9 @@ function handleMessage(message) {
 
   if (type === 'state_sync') {
     applyStateSync(data)
+    if (data.status && data.status !== 'running') {
+      disconnectWs()
+    }
     return
   }
 
@@ -416,6 +425,7 @@ function handleMessage(message) {
       execStatus.value = 'completed'
       addLog('所有节点执行完成 ✓', 'success')
     }
+    disconnectWs()
     return
   }
 
@@ -427,6 +437,7 @@ function handleMessage(message) {
 }
 
 function disconnectWs() {
+  manualDisconnect = true
   if (pingTimer) {
     clearInterval(pingTimer)
     pingTimer = null
