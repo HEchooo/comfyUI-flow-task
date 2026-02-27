@@ -29,16 +29,16 @@
   --warning: #f59e0b;
   --warning-soft: #fffbeb;
 
-  /* ── Sidebar dark theme ── */
-  --sidebar-bg: #0f172a;
-  --sidebar-bg-secondary: #1e293b;
-  --sidebar-text: rgba(255, 255, 255, 0.55);
-  --sidebar-text-hover: rgba(255, 255, 255, 0.85);
-  --sidebar-text-active: #ffffff;
-  --sidebar-item-hover: rgba(255, 255, 255, 0.06);
-  --sidebar-item-active: rgba(37, 99, 235, 0.15);
-  --sidebar-accent-border: var(--brand-light);
-  --sidebar-divider: rgba(255, 255, 255, 0.06);
+  /* ── Sidebar light theme ── */
+  --sidebar-bg: #fafafa;
+  --sidebar-bg-secondary: #f5f5f5;
+  --sidebar-text: #6b7280;
+  --sidebar-text-hover: #374151;
+  --sidebar-text-active: #111827;
+  --sidebar-item-hover: #e5e5e5;
+  --sidebar-item-active: #e5e5e5;
+  --sidebar-accent-border: #111827;
+  --sidebar-divider: #e5e7eb;
 
   /* ── Surfaces ── */
   --surface-primary: #ffffff;

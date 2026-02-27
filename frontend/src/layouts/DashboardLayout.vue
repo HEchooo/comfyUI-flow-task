@@ -2,7 +2,7 @@
   <div class="dashboard-layout" :class="{ 'sidebar-collapsed': isCollapsed }">
     <AppSidebar :collapsed="isCollapsed" @toggle="toggle" />
 
-    <div class="dashboard-main">
+    <div class="dashboard-main" :style="{ marginLeft: isCollapsed ? 'var(--sidebar-collapsed-width)' : 'var(--sidebar-width)' }">
       <AppHeader @toggle-sidebar="toggle" />
 
       <main class="dashboard-content">
@@ -28,15 +28,13 @@ const { isCollapsed, toggle } = useSidebar()
 
 <style scoped>
 .dashboard-layout {
-  display: grid;
-  grid-template-columns: var(--sidebar-width) 1fr;
+  display: flex;
   min-height: 100vh;
-  transition: grid-template-columns var(--sidebar-transition);
   background: var(--surface-secondary);
 }
 
 .dashboard-layout.sidebar-collapsed {
-  grid-template-columns: var(--sidebar-collapsed-width) 1fr;
+  /* Left margin applied via inline style on main */
 }
 
 .dashboard-main {
@@ -44,6 +42,8 @@ const { isCollapsed, toggle } = useSidebar()
   flex-direction: column;
   min-height: 100vh;
   overflow: hidden;
+  width: 100%;
+  transition: margin-left var(--sidebar-transition);
 }
 
 .dashboard-content {

@@ -1,0 +1,268 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Base styles ── */
+@layer base {
+  * {
+    @apply border-gray-200;
+  }
+
+  html {
+    @apply antialiased;
+  }
+
+  body {
+    @apply bg-white text-gray-900 font-sans;
+  }
+
+  /* Dark mode support */
+  @media (prefers-color-scheme: dark) {
+    body {
+      @apply bg-gray-950 text-gray-50;
+    }
+  }
+}
+
+/* ── Component styles ── */
+@layer components {
+  /* Buttons */
+  .btn {
+    @apply inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200;
+    @apply focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none;
+  }
+
+  .btn-primary {
+    @apply bg-black text-white hover:bg-gray-800 active:bg-gray-900;
+    @apply focus:ring-gray-500 shadow-sm;
+  }
+
+  .btn-primary-light {
+    @apply bg-white text-black border border-gray-300 hover:bg-gray-50 active:bg-gray-100;
+    @apply focus:ring-gray-500 shadow-sm;
+  }
+
+  .btn-secondary {
+    @apply bg-gray-100 text-gray-900 hover:bg-gray-200 active:bg-gray-300;
+    @apply focus:ring-gray-500;
+  }
+
+  .btn-ghost {
+    @apply bg-transparent text-gray-700 hover:bg-gray-100 active:bg-gray-200;
+    @apply focus:ring-gray-500;
+  }
+
+  .btn-danger {
+    @apply bg-red-500 text-white hover:bg-red-600 active:bg-red-700;
+    @apply focus:ring-red-500 shadow-sm;
+  }
+
+  /* Cards */
+  .card {
+    @apply bg-white rounded-xl border border-gray-200 shadow-sm;
+    @apply transition-shadow duration-200 hover:shadow-md;
+  }
+
+  .card-flat {
+    @apply bg-white rounded-xl border border-gray-200;
+  }
+
+  /* Inputs */
+  .input {
+    @apply block w-full px-3 py-2 text-sm rounded-lg border border-gray-300;
+    @apply focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent;
+    @apply transition-all duration-200;
+  }
+
+  .input-dark {
+    @apply bg-gray-900 border-gray-700 text-white placeholder-gray-500;
+    @apply focus:ring-gray-600;
+  }
+
+  /* Tags */
+  .tag {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+  }
+
+  .tag-default {
+    @apply bg-gray-100 text-gray-800;
+  }
+
+  .tag-success {
+    @apply bg-green-100 text-green-800;
+  }
+
+  .tag-warning {
+    @apply bg-yellow-100 text-yellow-800;
+  }
+
+  .tag-danger {
+    @apply bg-red-100 text-red-800;
+  }
+
+  .tag-info {
+    @apply bg-blue-100 text-blue-800;
+  }
+
+  /* Tables */
+  .table-container {
+    @apply overflow-hidden rounded-xl border border-gray-200;
+  }
+
+  .table {
+    @apply w-full text-sm text-left;
+  }
+
+  .table thead {
+    @apply bg-gray-50 border-b border-gray-200;
+  }
+
+  .table th {
+    @apply px-4 py-3 font-semibold text-gray-700 text-xs uppercase tracking-wider;
+  }
+
+  .table td {
+    @apply px-4 py-3 border-b border-gray-100 text-gray-600;
+  }
+
+  .table tr:last-child td {
+    @apply border-b-0;
+  }
+
+  .table tbody tr {
+    @apply hover:bg-gray-50 transition-colors duration-150;
+  }
+
+  /* Loading states */
+  .skeleton {
+    @apply bg-gray-200 rounded animate-pulse;
+  }
+
+  .skeleton-text {
+    @apply h-4 w-full;
+  }
+
+  .skeleton-title {
+    @apply h-6 w-3/4;
+  }
+
+  /* Scrollbar */
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(0, 0, 0, 0.3);
+  }
+}
+
+/* ── Utilities ── */
+@layer utilities {
+  /* Text gradient for brand accents only */
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-600;
+  }
+
+  /* Subtle border highlight */
+  .border-highlight {
+    @apply border-l-4 border-l-black;
+  }
+
+  /* Glass effect (minimal) */
+  .glass {
+    @apply bg-white/80 backdrop-blur-md border border-gray-200/50;
+  }
+
+  /* Truncate */
+  .line-clamp-1 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 1;
+  }
+
+  .line-clamp-2 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  .line-clamp-3 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+  }
+}
+
+/* ── Element Plus overrides (minimal) ── */
+.el-button--primary {
+  @apply !bg-black !border-black hover:!bg-gray-800;
+}
+
+.el-card {
+  @apply !rounded-xl !border-gray-200;
+}
+
+.el-input__wrapper {
+  @apply !rounded-lg !border-gray-300 focus:!ring-2 focus:!ring-gray-400 focus:!border-transparent;
+}
+
+.el-table {
+  @apply !rounded-xl !overflow-hidden;
+}
+
+.el-table th.el-table__cell {
+  @apply !bg-gray-50 !text-gray-700 !text-xs !uppercase !tracking-wider;
+}
+
+.el-table td.el-table__cell {
+  @apply !border-b !border-gray-100;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .btn-primary {
+    @apply !bg-white !text-black hover:!bg-gray-100;
+  }
+
+  .card {
+    @apply !bg-gray-900 !border-gray-800;
+  }
+
+  .input {
+    @apply !bg-gray-800 !border-gray-700 !text-white;
+  }
+
+  .table thead {
+    @apply !bg-gray-800 !border-gray-700;
+  }
+
+  .table th {
+    @apply !text-gray-300;
+  }
+
+  .table td {
+    @apply !text-gray-400 !border-gray-800;
+  }
+
+  .table tbody tr:hover {
+    @apply !bg-gray-800/50;
+  }
+}

@@ -150,13 +150,15 @@ function isActive(name) {
 <style scoped>
 .sidebar {
   width: var(--sidebar-width);
-  min-height: 100vh;
+  height: 100vh;
   background: var(--sidebar-bg);
   display: flex;
   flex-direction: column;
   transition: width var(--sidebar-transition);
   overflow: hidden;
-  position: relative;
+  position: fixed;
+  top: 0;
+  left: 0;
   z-index: 10;
 }
 
@@ -191,7 +193,7 @@ function isActive(name) {
 .brand-text {
   font-size: 16px;
   font-weight: 700;
-  color: #fff;
+  color: #111827;
   white-space: nowrap;
   letter-spacing: -0.02em;
 }
