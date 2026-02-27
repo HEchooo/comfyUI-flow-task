@@ -36,6 +36,8 @@
             <ExecutionProgress
               inline
               :task-id="String(scope.row.id)"
+              :task-status="String(scope.row.status || '')"
+              :initial-state="scope.row.execution_state"
               :active="isExpanded(scope.row.id)"
             />
           </div>

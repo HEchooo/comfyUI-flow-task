@@ -62,7 +62,13 @@
       </div>
 
       <div v-if="showProgressPanel" class="detail-progress">
-        <ExecutionProgress inline :task-id="String(task.id)" :active="true" />
+        <ExecutionProgress
+          inline
+          :task-id="String(task.id)"
+          :task-status="String(task.status || '')"
+          :initial-state="parsedExecutionState"
+          :active="true"
+        />
       </div>
 
       <h3 class="section-title">子任务列表</h3>
@@ -203,6 +209,22 @@ const canExecute = computed(() => task.status === 'pending' || task.status === '
 const showProgressPanel = computed(
   () => Boolean(task.id) && (task.status !== 'pending' || Boolean(task.execution_state))
 )
+const parsedExecutionState = computed(() => {
+  const raw = task.execution_state
+  if (!raw) return null
+  if (typeof raw === 'string') {
+    try {
+      const parsed = JSON.parse(raw)
+      return parsed && typeof parsed === 'object' ? parsed : null
+    } catch {
+      return null
+    }
+  }
+  if (typeof raw === 'object') {
+    return raw
+  }
+  return null
+})
 
 function formatTime(value) {
   if (!value) return '-'

@@ -106,6 +106,7 @@ class TaskListItem(BaseModel):
     title: str
     description: str | None
     status: TaskStatus
+    execution_state: str | None = None
     created_at: datetime
     updated_at: datetime
     subtask_count: int

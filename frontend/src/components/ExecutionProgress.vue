@@ -129,7 +129,9 @@ const props = defineProps({
   modelValue: { type: Boolean, default: false },
   taskId: { type: String, default: '' },
   inline: { type: Boolean, default: false },
-  active: { type: Boolean, default: false }
+  active: { type: Boolean, default: false },
+  taskStatus: { type: String, default: '' },
+  initialState: { type: [Object, String], default: null }
 })
 
 const emit = defineEmits(['update:modelValue'])
@@ -218,7 +220,24 @@ function resetState() {
   currentPromptId.value = ''
 }
 
-function applyStateSync(data) {
+function parseExecutionStateInput(raw) {
+  if (!raw) return null
+  if (typeof raw === 'string') {
+    try {
+      const parsed = JSON.parse(raw)
+      return parsed && typeof parsed === 'object' ? parsed : null
+    } catch {
+      return null
+    }
+  }
+  if (typeof raw === 'object') {
+    return raw
+  }
+  return null
+}
+
+function applyStateSync(data, options = {}) {
+  const { appendSyncLog = true } = options
   const status = data.status
   if (status === 'running') execStatus.value = 'running'
   else if (status === 'success') execStatus.value = 'completed'
@@ -252,7 +271,15 @@ function applyStateSync(data) {
       if (logEl.value) logEl.value.scrollTop = logEl.value.scrollHeight
     })
   }
-  addLog(`已同步服务端状态: ${status || 'unknown'}`, 'info')
+  if (appendSyncLog) {
+    addLog(`已同步服务端状态: ${status || 'unknown'}`, 'info')
+  }
+}
+
+function hydrateFromInitialState() {
+  const parsed = parseExecutionStateInput(props.initialState)
+  if (!parsed) return
+  applyStateSync(parsed, { appendSyncLog: false })
 }
 
 function connectWs() {
@@ -416,13 +443,31 @@ function handleClose() {
 }
 
 watch(
-  () => [isOpen.value, props.taskId],
-  ([open, taskId]) => {
+  () => [props.taskId, props.initialState],
+  ([taskId]) => {
+    if (!taskId) return
+    if (taskId !== activeTaskId.value) {
+      resetState()
+      activeTaskId.value = taskId
+    }
+    if (props.taskStatus !== 'running') {
+      hydrateFromInitialState()
+    }
+  },
+  { immediate: true, deep: true }
+)
+
+watch(
+  () => [isOpen.value, props.taskId, props.taskStatus],
+  ([open, taskId, taskStatus]) => {
     if (open && taskId) {
       if (taskId !== activeTaskId.value) {
         resetState()
         activeTaskId.value = taskId
-        connectWs()
+      }
+      if (taskStatus !== 'running') {
+        disconnectWs()
+        hydrateFromInitialState()
       } else if (!ws) {
         connectWs()
       }
