@@ -6,7 +6,7 @@
           <div class="page-title">{{ isEdit ? '编辑工作流' : '新建工作流' }}</div>
           <div class="page-subtitle">工作流仅保存提示词和文本信息，不保存图片</div>
         </div>
-        <el-button @click="$router.push('/templates')">返回工作流列表</el-button>
+        <el-button @click="$router.push('/dashboard/templates')">返回工作流列表</el-button>
       </div>
     </template>
 
@@ -264,7 +264,7 @@ async function submit() {
       await createTaskTemplate(payload)
       ElMessage.success('工作流已创建')
     }
-    router.push('/templates')
+    router.push('/dashboard/templates')
   } catch (error) {
     if (isDuplicateRequestError(error)) return
     ElMessage.error(error?.response?.data?.detail || '保存工作流失败')

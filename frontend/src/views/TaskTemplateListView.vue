@@ -6,7 +6,7 @@
           <div class="page-title">工作流</div>
           <div class="page-subtitle">维护可复用工作流并快速生成任务</div>
         </div>
-        <el-button type="primary" :disabled="loading" @click="$router.push('/templates/new')">新建工作流</el-button>
+        <el-button type="primary" :disabled="loading" @click="$router.push('/dashboard/templates/new')">新建工作流</el-button>
       </div>
     </template>
 
@@ -31,7 +31,7 @@
           <el-button
             link
             :disabled="loading || creatingTaskFromTemplateId === scope.row.id || deletingTemplateId === scope.row.id"
-            @click="$router.push(`/templates/${scope.row.id}/edit`)"
+            @click="$router.push(`/dashboard/templates/${scope.row.id}/edit`)"
           >
             编辑
           </el-button>
@@ -113,7 +113,7 @@ async function handleCreateTask(row) {
     creatingTaskFromTemplateId.value = row.id
     const created = await createTaskFromTemplate(row.id, {})
     ElMessage.success('已从工作流创建任务')
-    router.push(`/tasks/${created.id}/edit`)
+    router.push(`/dashboard/tasks/${created.id}/edit`)
   } catch (error) {
     if (isDuplicateRequestError(error)) return
     ElMessage.error(error?.response?.data?.detail || '创建任务失败')

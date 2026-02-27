@@ -6,7 +6,7 @@
           <div class="page-title">{{ isEdit ? '编辑任务' : '创建任务' }}</div>
           <div class="page-subtitle">配置子任务账号、发布时间和图片</div>
         </div>
-        <el-button @click="$router.push('/')">返回列表</el-button>
+        <el-button @click="$router.push('/dashboard')">返回列表</el-button>
       </div>
     </template>
 
@@ -24,7 +24,7 @@
             <el-option v-for="item in templateOptions" :key="item.id" :label="item.title" :value="item.id" />
           </el-select>
           <el-button :loading="applyingTemplate" :disabled="!selectedTemplateId || applyingTemplate" @click="applyTemplate">填充工作流</el-button>
-          <el-button text type="primary" @click="$router.push('/templates')">管理工作流</el-button>
+          <el-button text type="primary" @click="$router.push('/dashboard/templates')">管理工作流</el-button>
         </div>
       </el-form-item>
 
@@ -86,7 +86,7 @@
             </el-row>
             <div class="schedule-tip">
               <span>当前服务器: {{ comfyuiServerIp || '-' }}</span>
-              <el-button text type="primary" @click="$router.push('/settings')">去设置端口池</el-button>
+              <el-button text type="primary" @click="$router.push('/dashboard/settings')">去设置端口池</el-button>
             </div>
           </div>
         </transition>
@@ -538,7 +538,7 @@ async function submit() {
       saved = await createTask(payload)
       ElMessage.success('任务已创建')
     }
-    router.push(`/tasks/${saved.id}`)
+    router.push(`/dashboard/tasks/${saved.id}`)
   } catch (error) {
     if (isDuplicateRequestError(error)) return
     ElMessage.error(error?.response?.data?.detail || '保存失败')

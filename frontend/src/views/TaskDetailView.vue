@@ -7,9 +7,9 @@
           <div class="page-subtitle">查看任务与子任务执行配置</div>
         </div>
         <div class="actions">
-          <el-button @click="$router.push('/')">返回列表</el-button>
+          <el-button @click="$router.push('/dashboard')">返回列表</el-button>
           <el-button type="danger" plain :loading="deleting" :disabled="!task.id || deleting" @click="handleDelete">删除</el-button>
-          <el-button type="primary" @click="$router.push(`/tasks/${task.id}/edit`)" :disabled="!task.id">编辑</el-button>
+          <el-button type="primary" @click="$router.push(`/dashboard/tasks/${task.id}/edit`)" :disabled="!task.id">编辑</el-button>
           <el-tooltip v-if="canExecute" :content="!task.workflow_json ? '请先上传工作流' : '执行 ComfyUI 工作流'" placement="top">
             <span>
               <el-button
@@ -423,7 +423,7 @@ async function handleDelete() {
     deleting.value = true
     await deleteTask(task.id)
     ElMessage.success('任务已删除')
-    router.replace('/')
+    router.replace('/dashboard')
   } catch (error) {
     if (isDuplicateRequestError(error)) return
     if (error !== 'cancel') {

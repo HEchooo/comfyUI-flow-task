@@ -49,7 +49,7 @@ async function submit() {
     localStorage.setItem('task_manager_token', result.access_token)
     localStorage.setItem('task_manager_username', result.username)
     ElMessage.success('登录成功')
-    router.replace('/')
+    router.replace('/dashboard')
   } catch (error) {
     if (isDuplicateRequestError(error)) return
     ElMessage.error(error?.response?.data?.detail || '登录失败')
@@ -61,7 +61,7 @@ async function submit() {
 
 <style scoped>
 .login-page {
-  min-height: calc(100vh - 120px);
+  min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;

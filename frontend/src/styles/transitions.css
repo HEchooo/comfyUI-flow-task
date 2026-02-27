@@ -1,0 +1,38 @@
+/* ── Page transitions for dashboard (handled by DashboardLayout) ── */
+.page-fade-enter-active {
+  transition: opacity 0.25s var(--ease-out),
+              transform 0.25s var(--ease-out);
+}
+
+.page-fade-leave-active {
+  transition: opacity 0.18s var(--ease-out),
+              transform 0.18s var(--ease-out);
+}
+
+.page-fade-enter-from {
+  opacity: 0;
+  transform: translateY(6px);
+}
+
+.page-fade-leave-to {
+  opacity: 0;
+  transform: translateY(-3px);
+}
+
+/* ── Sidebar text transition ── */
+.sidebar-text-enter-active {
+  transition: opacity 0.18s ease 0.05s,
+              max-width 0.25s var(--ease-in-out);
+}
+
+.sidebar-text-leave-active {
+  transition: opacity 0.12s ease,
+              max-width 0.2s var(--ease-in-out) 0.02s;
+}
+
+.sidebar-text-enter-from,
+.sidebar-text-leave-to {
+  opacity: 0;
+  max-width: 0;
+  overflow: hidden;
+}

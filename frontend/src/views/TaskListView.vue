@@ -7,8 +7,7 @@
           <div class="page-subtitle">查看、检索并管理任务</div>
         </div>
         <div class="head-actions">
-          <el-button @click="$router.push('/templates')">工作流</el-button>
-          <el-button type="primary" @click="$router.push('/tasks/new')">新建任务</el-button>
+          <el-button type="primary" @click="$router.push('/dashboard/tasks/new')">新建任务</el-button>
         </div>
       </div>
     </template>
@@ -64,8 +63,8 @@
       </el-table-column>
       <el-table-column label="操作" width="430" fixed="right">
         <template #default="scope">
-          <el-button link type="primary" :disabled="loading || deletingTaskId === scope.row.id || cancellingTaskId === scope.row.id" @click="$router.push(`/tasks/${scope.row.id}`)">详情</el-button>
-          <el-button link :disabled="loading || deletingTaskId === scope.row.id || cancellingTaskId === scope.row.id" @click="$router.push(`/tasks/${scope.row.id}/edit`)">编辑</el-button>
+          <el-button link type="primary" :disabled="loading || deletingTaskId === scope.row.id || cancellingTaskId === scope.row.id" @click="$router.push(`/dashboard/tasks/${scope.row.id}`)">详情</el-button>
+          <el-button link :disabled="loading || deletingTaskId === scope.row.id || cancellingTaskId === scope.row.id" @click="$router.push(`/dashboard/tasks/${scope.row.id}/edit`)">编辑</el-button>
           <el-button
             link
             type="warning"
