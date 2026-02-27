@@ -14,7 +14,7 @@ if str(BACKEND_ROOT) not in sys.path:
 
 from app.core.config import settings
 from app.db.base import Base
-from app.models import photo, subtask, task, task_template  # noqa: F401
+from app.models import comfyui_setting, photo, subtask, task, task_template  # noqa: F401
 
 config = context.config
 sync_url = settings.database_url.replace("+asyncpg", "+psycopg2").replace("+aiosqlite", "")

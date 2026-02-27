@@ -165,6 +165,13 @@
     </el-dialog>
   </el-card>
 
+  <ExecuteEndpointDialog
+    v-model="endpointDialogVisible"
+    :task-title="task.title || ''"
+    :submitting="endpointDialogSubmitting"
+    @confirm="handleConfirmExecute"
+  />
+
 </template>
 
 <script setup>
@@ -174,6 +181,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { Document, Warning } from '@element-plus/icons-vue'
 
 import ExecutionProgress from '../components/ExecutionProgress.vue'
+import ExecuteEndpointDialog from '../components/ExecuteEndpointDialog.vue'
 import { deleteTask, fetchTask } from '../api/tasks'
 import { cancelExecutionTask, executeTask } from '../api/execution'
 import { isDuplicateRequestError } from '../api/http'
@@ -186,6 +194,8 @@ const loading = ref(false)
 const deleting = ref(false)
 const executing = ref(false)
 const cancelling = ref(false)
+const endpointDialogVisible = ref(false)
+const endpointDialogSubmitting = ref(false)
 const task = reactive({})
 const workflowJsonDialog = ref(false)
 
@@ -316,29 +326,36 @@ async function loadData() {
 }
 
 async function handleExecute() {
-  if (executing.value) return
-  try {
-    await ElMessageBox.confirm(
-      `确认执行任务「${task.title}」的 ComfyUI 工作流？`,
-      '执行确认',
-      { confirmButtonText: '执行', cancelButtonText: '取消' }
-    )
-  } catch {
+  if (executing.value || cancelling.value) {
     return
   }
+  endpointDialogVisible.value = true
+}
 
+async function handleConfirmExecute(endpoint) {
+  if (!task.id) return
   executing.value = true
+  endpointDialogSubmitting.value = true
+  let executeSuccess = false
   try {
     task.status = 'running'
     await nextTick()
-    await executeTask(task.id)
+    await executeTask(task.id, {
+      server_ip: endpoint.server_ip,
+      port: endpoint.port
+    })
     await loadData()
+    executeSuccess = true
   } catch (error) {
     task.status = 'fail'
     if (isDuplicateRequestError(error)) return
     ElMessage.error(error?.response?.data?.detail || '执行失败')
   } finally {
     executing.value = false
+    endpointDialogSubmitting.value = false
+    if (executeSuccess) {
+      endpointDialogVisible.value = false
+    }
   }
 }
 

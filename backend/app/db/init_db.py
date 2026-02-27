@@ -4,11 +4,12 @@ from sqlalchemy import text
 
 from app.db.base import Base
 from app.db.session import engine
-from app.models import generated_image, photo, subtask, task, task_template  # noqa: F401
+from app.models import comfyui_setting, generated_image, photo, subtask, task, task_template  # noqa: F401
 
 
 async def init_db() -> None:
     async with engine.begin() as conn:
+        dialect = conn.dialect.name
         await conn.run_sync(Base.metadata.create_all)
         # Local schema cleanup for pre-release development.
         await conn.execute(text("ALTER TABLE subtasks ADD COLUMN IF NOT EXISTS result JSONB NOT NULL DEFAULT '{}'"))
@@ -18,3 +19,31 @@ async def init_db() -> None:
         await conn.execute(text("ALTER TABLE tasks ADD COLUMN IF NOT EXISTS workflow_filename TEXT"))
         await conn.execute(text("ALTER TABLE tasks ADD COLUMN IF NOT EXISTS execution_state TEXT"))
         await conn.execute(text("ALTER TABLE task_templates ADD COLUMN IF NOT EXISTS workflow_json JSONB"))
+        if dialect == "postgresql":
+            await conn.execute(
+                text(
+                    """
+                    CREATE TABLE IF NOT EXISTS comfyui_settings (
+                        key VARCHAR(32) PRIMARY KEY,
+                        server_ip VARCHAR(255) NOT NULL,
+                        ports JSONB NOT NULL DEFAULT '[]'::jsonb,
+                        created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+                        updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+                    )
+                    """
+                )
+            )
+        else:
+            await conn.execute(
+                text(
+                    """
+                    CREATE TABLE IF NOT EXISTS comfyui_settings (
+                        key VARCHAR(32) PRIMARY KEY,
+                        server_ip VARCHAR(255) NOT NULL,
+                        ports JSON NOT NULL DEFAULT '[]',
+                        created_at DATETIME NOT NULL,
+                        updated_at DATETIME NOT NULL
+                    )
+                    """
+                )
+            )

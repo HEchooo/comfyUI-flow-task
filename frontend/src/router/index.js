@@ -6,6 +6,7 @@ import TaskDetailView from '../views/TaskDetailView.vue'
 import LoginView from '../views/LoginView.vue'
 import TaskTemplateListView from '../views/TaskTemplateListView.vue'
 import TaskTemplateFormView from '../views/TaskTemplateFormView.vue'
+import SettingsView from '../views/SettingsView.vue'
 
 const routes = [
   { path: '/login', component: LoginView, meta: { public: true } },
@@ -15,7 +16,8 @@ const routes = [
   { path: '/tasks/:id', component: TaskDetailView },
   { path: '/templates', component: TaskTemplateListView },
   { path: '/templates/new', component: TaskTemplateFormView },
-  { path: '/templates/:id/edit', component: TaskTemplateFormView }
+  { path: '/templates/:id/edit', component: TaskTemplateFormView },
+  { path: '/settings', component: SettingsView }
 ]
 
 const router = createRouter({

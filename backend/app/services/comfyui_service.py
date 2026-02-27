@@ -5,11 +5,10 @@ import json
 import logging
 from dataclasses import dataclass, field
 from typing import Awaitable, Callable
+from urllib.parse import urlparse, urlunparse
 
 import httpx
 import websockets
-
-from app.core.config import settings
 
 logger = logging.getLogger("app.comfyui")
 
@@ -42,7 +41,7 @@ class ComfyEvent:
 # ──────────────────────────────────────────────
 
 
-async def submit_prompt(workflow_json: dict, *, client_id: str) -> PromptSubmitResult:
+async def submit_prompt(workflow_json: dict, *, client_id: str, api_base_url: str) -> PromptSubmitResult:
     """
     POST the workflow to ComfyUI /api/prompt.
 
@@ -53,12 +52,8 @@ async def submit_prompt(workflow_json: dict, *, client_id: str) -> PromptSubmitR
     }
     """
     node_count = len(workflow_json) if isinstance(workflow_json, dict) else -1
-    logger.info(
-        "Submitting prompt to ComfyUI: api_url=%s client_id=%s node_count=%s",
-        settings.comfyui_api_url,
-        client_id,
-        node_count,
-    )
+    api_url = f"{api_base_url.rstrip('/')}/api/prompt"
+    logger.info("Submitting prompt to ComfyUI: api_url=%s client_id=%s node_count=%s", api_url, client_id, node_count)
 
     payload = {
         "prompt": workflow_json,
@@ -67,10 +62,7 @@ async def submit_prompt(workflow_json: dict, *, client_id: str) -> PromptSubmitR
 
     try:
         async with httpx.AsyncClient(timeout=30.0) as client:
-            response = await client.post(
-                settings.comfyui_api_url,
-                json=payload,
-            )
+            response = await client.post(api_url, json=payload)
     except httpx.HTTPError as exc:
         logger.exception("ComfyUI /api/prompt request failed: %s", exc)
         return PromptSubmitResult(
@@ -113,15 +105,18 @@ async def submit_prompt(workflow_json: dict, *, client_id: str) -> PromptSubmitR
     return PromptSubmitResult(prompt_id=prompt_id)
 
 
-async def interrupt_execution() -> str | None:
+async def interrupt_execution(*, api_base_url: str, prompt_id: str | None = None) -> str | None:
     """
     Best-effort interrupt for current ComfyUI execution.
     Returns None on success, otherwise an error message.
     """
-    interrupt_url = f"{settings.comfyui_api_base_url.rstrip('/')}/interrupt"
+    interrupt_url = f"{api_base_url.rstrip('/')}/interrupt"
     try:
         async with httpx.AsyncClient(timeout=10.0) as client:
-            response = await client.post(interrupt_url)
+            if prompt_id:
+                response = await client.post(interrupt_url, json={"prompt_id": prompt_id})
+            else:
+                response = await client.post(interrupt_url)
     except httpx.HTTPError as exc:
         logger.exception("ComfyUI /interrupt request failed: %s", exc)
         return f"HTTP request error: {exc}"
@@ -146,6 +141,7 @@ async def interrupt_execution() -> str | None:
 async def listen_comfyui_ws(
     client_id: str,
     *,
+    ws_base_url: str,
     on_event: Callable[[ComfyEvent], Awaitable[None]],
     stop_event: asyncio.Event,
     prompt_ids: set[str] | None = None,
@@ -160,7 +156,7 @@ async def listen_comfyui_ws(
         stop_event: Set this to gracefully terminate the listener.
         prompt_ids: If provided, only emit events for these prompt IDs.
     """
-    ws_url = f"{settings.comfyui_ws_url}?clientId={client_id}"
+    ws_url = f"{ws_base_url.rstrip('/')}/ws?clientId={client_id}"
     logger.info("Connecting to ComfyUI WS: %s", ws_url)
 
     try:
@@ -211,6 +207,95 @@ async def listen_comfyui_ws(
 
     except Exception:
         logger.exception("ComfyUI WS listener error")
+
+
+def build_ws_base_url(api_base_url: str) -> str:
+    parsed = urlparse(api_base_url.rstrip("/"))
+    scheme = "wss" if parsed.scheme == "https" else "ws"
+    return urlunparse((scheme, parsed.netloc, "", "", "", "")).rstrip("/")
+
+
+async def fetch_queue_status(*, api_base_url: str) -> tuple[int, int, str | None]:
+    queue_url = f"{api_base_url.rstrip('/')}/queue"
+    try:
+        async with httpx.AsyncClient(timeout=5.0) as client:
+            response = await client.get(queue_url)
+    except httpx.HTTPError as exc:
+        return 0, 0, f"HTTP request error: {exc}"
+
+    if response.status_code != 200:
+        return 0, 0, f"ComfyUI returned HTTP {response.status_code}"
+
+    try:
+        data = response.json()
+    except json.JSONDecodeError:
+        return 0, 0, "ComfyUI returned non-JSON queue response"
+
+    queue_running = data.get("queue_running")
+    queue_pending = data.get("queue_pending")
+    running_count = len(queue_running) if isinstance(queue_running, list) else 0
+    pending_count = len(queue_pending) if isinstance(queue_pending, list) else 0
+    return running_count, pending_count, None
+
+
+def _extract_prompt_ids_from_queue_entries(entries: list) -> set[str]:
+    prompt_ids: set[str] = set()
+    for entry in entries:
+        if not isinstance(entry, (list, tuple)):
+            continue
+        if len(entry) < 2:
+            continue
+        prompt_id = str(entry[1] or "").strip()
+        if prompt_id:
+            prompt_ids.add(prompt_id)
+    return prompt_ids
+
+
+async def fetch_queue_prompt_ids(*, api_base_url: str) -> tuple[set[str], set[str], str | None]:
+    queue_url = f"{api_base_url.rstrip('/')}/queue"
+    try:
+        async with httpx.AsyncClient(timeout=5.0) as client:
+            response = await client.get(queue_url)
+    except httpx.HTTPError as exc:
+        return set(), set(), f"HTTP request error: {exc}"
+
+    if response.status_code != 200:
+        return set(), set(), f"ComfyUI returned HTTP {response.status_code}"
+
+    try:
+        data = response.json()
+    except json.JSONDecodeError:
+        return set(), set(), "ComfyUI returned non-JSON queue response"
+
+    queue_running = data.get("queue_running")
+    queue_pending = data.get("queue_pending")
+    running_ids = _extract_prompt_ids_from_queue_entries(queue_running if isinstance(queue_running, list) else [])
+    pending_ids = _extract_prompt_ids_from_queue_entries(queue_pending if isinstance(queue_pending, list) else [])
+    return running_ids, pending_ids, None
+
+
+async def delete_prompt_from_queue(*, api_base_url: str, prompt_id: str) -> str | None:
+    queue_url = f"{api_base_url.rstrip('/')}/queue"
+    normalized_prompt_id = str(prompt_id or "").strip()
+    if not normalized_prompt_id:
+        return "prompt_id is required"
+
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            response = await client.post(queue_url, json={"delete": [normalized_prompt_id]})
+    except httpx.HTTPError as exc:
+        logger.exception("ComfyUI /queue delete request failed: %s", exc)
+        return f"HTTP request error: {exc}"
+
+    if response.status_code not in {200, 204}:
+        logger.error(
+            "ComfyUI /queue delete returned %s: %s",
+            response.status_code,
+            response.text[:500],
+        )
+        return f"ComfyUI queue delete returned HTTP {response.status_code}"
+
+    return None
 
 
 def _parse_comfy_message(msg: dict) -> ComfyEvent | None:

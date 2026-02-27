@@ -9,6 +9,7 @@
         <div class="brand">ComfyUI Task Manager</div>
       </button>
       <div class="header-right">
+        <el-button v-if="!isLoginPage" size="small" @click="goSettings">设置</el-button>
         <el-button v-if="!isLoginPage" type="danger" plain size="small" @click="logout">退出登录</el-button>
       </div>
     </el-header>
@@ -35,6 +36,10 @@ function logout() {
 
 function goHome() {
   router.push('/')
+}
+
+function goSettings() {
+  router.push('/settings')
 }
 </script>
 

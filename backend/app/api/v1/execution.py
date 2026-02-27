@@ -11,10 +11,21 @@ from fastapi import APIRouter, Depends, HTTPException, WebSocket, WebSocketDisco
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.config import settings
 from app.db.session import SessionLocal, get_db
 from app.models.enums import TaskStatus
 from app.models.task import Task
-from app.services.comfyui_service import ComfyEvent, interrupt_execution, listen_comfyui_ws, submit_prompt
+from app.services.comfyui_service import (
+    ComfyEvent,
+    build_ws_base_url,
+    delete_prompt_from_queue,
+    fetch_queue_status,
+    fetch_queue_prompt_ids,
+    interrupt_execution,
+    listen_comfyui_ws,
+    submit_prompt,
+)
+from app.services.comfyui_settings_service import ensure_allowed_endpoint, parse_endpoint_from_execution_state
 from app.services.task_service import bind_task_id_to_workflow, get_task_or_404
 
 router = APIRouter(prefix="/execution", tags=["execution"])
@@ -40,9 +51,21 @@ _listener_tasks: dict[str, asyncio.Task] = {}
 # ──────────────────────────────────────────────
 
 
+class ExecuteTaskRequest(BaseModel):
+    server_ip: str
+    port: int
+
+
+class ExecuteEndpoint(BaseModel):
+    server_ip: str
+    port: int
+    base_url: str
+
+
 class ExecuteTaskResponse(BaseModel):
     task_id: UUID
     prompt_id: str
+    endpoint: ExecuteEndpoint
 
 
 class CancelTaskResponse(BaseModel):
@@ -61,6 +84,7 @@ def _new_execution_state(task_id: str, *, status_value: str) -> dict:
         "current_node_id": "",
         "current_node_title": "",
         "current_node_class_type": "",
+        "target_endpoint": {"server_ip": "", "port": 0, "base_url": ""},
         "progress": {"node_id": "", "node_title": "", "node_class_type": "", "value": 0, "max": 0},
         "error_message": "",
         "event_log": [],
@@ -245,6 +269,7 @@ async def _cleanup_worker_loop() -> None:
 @router.post("/task/{task_id}", response_model=ExecuteTaskResponse)
 async def execute_task(
     task_id: UUID,
+    payload: ExecuteTaskRequest,
     session: AsyncSession = Depends(get_db),
 ) -> ExecuteTaskResponse:
     task = await get_task_or_404(session, task_id)
@@ -277,8 +302,25 @@ async def execute_task(
             detail="Task has no workflow JSON. Upload a workflow before executing.",
         )
 
+    try:
+        endpoint = await ensure_allowed_endpoint(
+            session,
+            server_ip=payload.server_ip,
+            port=payload.port,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+
+    probe_running_count, probe_pending_count, probe_error = await fetch_queue_status(api_base_url=endpoint.base_url)
+    if probe_error:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Selected ComfyUI endpoint is unreachable: {probe_error}",
+        )
+
     # Generate a unique client_id for this execution
     client_id = uuid.uuid4().hex
+    ws_base_url = build_ws_base_url(endpoint.base_url)
     task_id_str = str(task_id)
     prompt_ids: set[str] = set()
     listener_stop_event = asyncio.Event()
@@ -292,12 +334,24 @@ async def execute_task(
     task.status = TaskStatus.running
     task.comfy_message = "Execution requested"
     await session.commit()
-    logger.info("Task marked running on execute request: task_id=%s", task_id)
+    logger.info(
+        "Task marked running on execute request: task_id=%s endpoint=%s queue_running=%s queue_pending=%s",
+        task_id,
+        endpoint.base_url,
+        probe_running_count,
+        probe_pending_count,
+    )
 
     initial_state = _new_execution_state(task_id_str, status_value=TaskStatus.running.value)
     initial_state["_node_map"] = _build_workflow_node_map(workflow_json)
+    initial_state["target_endpoint"] = {
+        "server_ip": endpoint.server_ip,
+        "port": endpoint.port,
+        "base_url": endpoint.base_url,
+    }
     _execution_states[task_id_str] = initial_state
     _append_event_log(task_id_str, "执行请求已提交，等待 ComfyUI 响应…", "info")
+    _append_event_log(task_id_str, f"目标端口: {endpoint.server_ip}:{endpoint.port}", "info")
     _mark_execution_state_dirty(task_id_str)
 
     # Start ComfyUI listener first to avoid missing fast execution events.
@@ -305,6 +359,7 @@ async def execute_task(
         _run_comfyui_listener(
             client_id=client_id,
             task_id=task_id_str,
+            ws_base_url=ws_base_url,
             prompt_ids=prompt_ids,
             stop_event=listener_stop_event,
             connected_event=listener_connected_event,
@@ -323,7 +378,7 @@ async def execute_task(
         )
 
     # Submit to ComfyUI
-    result = await submit_prompt(workflow_json, client_id=client_id)
+    result = await submit_prompt(workflow_json, client_id=client_id, api_base_url=endpoint.base_url)
     logger.info(
         "ComfyUI submit result: task_id=%s prompt_id=%s error=%s",
         task_id,
@@ -338,6 +393,11 @@ async def execute_task(
         if state is None:
             fail_state = _new_execution_state(task_id_str, status_value=TaskStatus.fail.value)
             fail_state["_node_map"] = _build_workflow_node_map(workflow_json)
+            fail_state["target_endpoint"] = {
+                "server_ip": endpoint.server_ip,
+                "port": endpoint.port,
+                "base_url": endpoint.base_url,
+            }
             _execution_states[task_id_str] = fail_state
             state = _execution_states[task_id_str]
         state["status"] = TaskStatus.fail.value
@@ -363,6 +423,11 @@ async def execute_task(
         if state is None:
             fail_state = _new_execution_state(task_id_str, status_value=TaskStatus.fail.value)
             fail_state["_node_map"] = _build_workflow_node_map(workflow_json)
+            fail_state["target_endpoint"] = {
+                "server_ip": endpoint.server_ip,
+                "port": endpoint.port,
+                "base_url": endpoint.base_url,
+            }
             _execution_states[task_id_str] = fail_state
             state = _execution_states[task_id_str]
         state["status"] = TaskStatus.fail.value
@@ -387,11 +452,21 @@ async def execute_task(
     if state is None:
         running_state = _new_execution_state(task_id_str, status_value=TaskStatus.running.value)
         running_state["_node_map"] = _build_workflow_node_map(workflow_json)
+        running_state["target_endpoint"] = {
+            "server_ip": endpoint.server_ip,
+            "port": endpoint.port,
+            "base_url": endpoint.base_url,
+        }
         _execution_states[task_id_str] = running_state
         state = _execution_states[task_id_str]
     state["status"] = TaskStatus.running.value
     state["prompt_id"] = result.prompt_id
     state["prompt_ids"] = sorted(prompt_ids)
+    state["target_endpoint"] = {
+        "server_ip": endpoint.server_ip,
+        "port": endpoint.port,
+        "base_url": endpoint.base_url,
+    }
     state["error_message"] = ""
     state["updated_at"] = _now_iso()
     _append_event_log(task_id_str, "执行开始", "info")
@@ -409,6 +484,11 @@ async def execute_task(
     return ExecuteTaskResponse(
         task_id=task.id,
         prompt_id=result.prompt_id,
+        endpoint=ExecuteEndpoint(
+            server_ip=endpoint.server_ip,
+            port=endpoint.port,
+            base_url=endpoint.base_url,
+        ),
     )
 
 
@@ -429,7 +509,50 @@ async def cancel_task_execution(
 
     if stop_event is not None:
         stop_event.set()
-    interrupt_error = await interrupt_execution()
+    state = _execution_states.get(task_id_str)
+    if state is None:
+        state = await _load_persisted_execution_state(task_id_str)
+        if state is not None:
+            _execution_states[task_id_str] = state
+
+    endpoint = parse_endpoint_from_execution_state(state)
+    target_base_url = endpoint.base_url if endpoint is not None else settings.comfyui_api_base_url
+    prompt_ids_from_state: set[str] = set()
+    if isinstance(state, dict):
+        raw_prompt_id = str(state.get("prompt_id") or "").strip()
+        if raw_prompt_id:
+            prompt_ids_from_state.add(raw_prompt_id)
+        raw_prompt_ids = state.get("prompt_ids")
+        if isinstance(raw_prompt_ids, list):
+            for raw in raw_prompt_ids:
+                prompt_id = str(raw or "").strip()
+                if prompt_id:
+                    prompt_ids_from_state.add(prompt_id)
+
+    interrupt_error: str | None = None
+    queue_running_ids, queue_pending_ids, queue_error = await fetch_queue_prompt_ids(api_base_url=target_base_url)
+    if queue_error:
+        interrupt_error = queue_error
+    else:
+        operation_errors: list[str] = []
+        matched_any = False
+        for prompt_id in sorted(prompt_ids_from_state):
+            if prompt_id in queue_pending_ids:
+                matched_any = True
+                delete_error = await delete_prompt_from_queue(api_base_url=target_base_url, prompt_id=prompt_id)
+                if delete_error:
+                    operation_errors.append(f"{prompt_id}: {delete_error}")
+            elif prompt_id in queue_running_ids:
+                matched_any = True
+                target_interrupt_error = await interrupt_execution(api_base_url=target_base_url, prompt_id=prompt_id)
+                if target_interrupt_error:
+                    operation_errors.append(f"{prompt_id}: {target_interrupt_error}")
+
+        if not matched_any and not prompt_ids_from_state:
+            logger.info("Cancel requested without prompt_id yet: task_id=%s", task_id_str)
+
+        if operation_errors:
+            interrupt_error = "; ".join(operation_errors)
 
     message = "Execution cancelled by user"
     state = _execution_states.get(task_id_str)
@@ -568,6 +691,13 @@ async def _load_persisted_execution_state(task_id: str) -> dict | None:
         persisted.setdefault("current_node_id", "")
         persisted.setdefault("current_node_title", "")
         persisted.setdefault("current_node_class_type", "")
+        target_endpoint = persisted.get("target_endpoint")
+        if not isinstance(target_endpoint, dict):
+            target_endpoint = {}
+        target_endpoint.setdefault("server_ip", "")
+        target_endpoint.setdefault("port", 0)
+        target_endpoint.setdefault("base_url", "")
+        persisted["target_endpoint"] = target_endpoint
         progress = persisted.get("progress")
         if not isinstance(progress, dict):
             progress = {}
@@ -643,6 +773,7 @@ async def _run_comfyui_listener(
     *,
     client_id: str,
     task_id: str,
+    ws_base_url: str,
     prompt_ids: set[str],
     stop_event: asyncio.Event | None = None,
     connected_event: asyncio.Event | None = None,
@@ -822,6 +953,7 @@ async def _run_comfyui_listener(
     try:
         await listen_comfyui_ws(
             client_id,
+            ws_base_url=ws_base_url,
             on_event=on_event,
             stop_event=runtime_stop_event,
             prompt_ids=prompt_ids,

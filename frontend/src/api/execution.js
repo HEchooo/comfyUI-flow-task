@@ -7,8 +7,8 @@ export async function uploadWorkflow(file) {
   return data
 }
 
-export async function executeTask(taskId) {
-  const { data } = await http.post(`/execution/task/${taskId}`)
+export async function executeTask(taskId, payload) {
+  const { data } = await http.post(`/execution/task/${taskId}`, payload)
   return data
 }
 

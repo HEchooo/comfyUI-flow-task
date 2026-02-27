@@ -110,6 +110,13 @@
     </div>
   </el-card>
 
+  <ExecuteEndpointDialog
+    v-model="endpointDialogVisible"
+    :task-title="pendingExecuteTaskTitle"
+    :submitting="endpointDialogSubmitting"
+    @confirm="handleConfirmExecute"
+  />
+
 </template>
 
 <script setup>
@@ -117,6 +124,7 @@ import { nextTick, onMounted, reactive, ref } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
 import ExecutionProgress from '../components/ExecutionProgress.vue'
+import ExecuteEndpointDialog from '../components/ExecuteEndpointDialog.vue'
 import { deleteTask, fetchTasks } from '../api/tasks'
 import { cancelExecutionTask, executeTask } from '../api/execution'
 import { isDuplicateRequestError } from '../api/http'
@@ -128,6 +136,10 @@ const deletingTaskId = ref('')
 const executingTaskId = ref('')
 const cancellingTaskId = ref('')
 const expandedRowKeys = ref([])
+const endpointDialogVisible = ref(false)
+const endpointDialogSubmitting = ref(false)
+const pendingExecuteTaskId = ref('')
+const pendingExecuteTaskTitle = ref('')
 
 const filters = reactive({
   taskId: '',
@@ -198,30 +210,48 @@ function onPageChange(page) {
 }
 
 async function handleExecute(row) {
-  if (executingTaskId.value) return
-  try {
-    await ElMessageBox.confirm(
-      `确认执行任务「${row.title}」的 ComfyUI 工作流？`,
-      '执行确认',
-      { confirmButtonText: '执行', cancelButtonText: '取消' }
-    )
-  } catch {
+  if (executingTaskId.value || cancellingTaskId.value) {
+    return
+  }
+  pendingExecuteTaskId.value = String(row.id)
+  pendingExecuteTaskTitle.value = String(row.title || '')
+  endpointDialogVisible.value = true
+}
+
+async function handleConfirmExecute(endpoint) {
+  if (!pendingExecuteTaskId.value) return
+  const taskId = pendingExecuteTaskId.value
+  const row = rows.value.find((item) => String(item.id) === taskId)
+  if (!row) {
+    ElMessage.warning('任务不存在或列表已刷新，请重试')
     return
   }
 
   executingTaskId.value = row.id
+  endpointDialogSubmitting.value = true
+  let executeSuccess = false
   try {
     openProgress(row.id)
     row.status = 'running'
     await nextTick()
-    await executeTask(row.id)
+    await executeTask(row.id, {
+      server_ip: endpoint.server_ip,
+      port: endpoint.port
+    })
     await loadTasks()
+    executeSuccess = true
   } catch (error) {
     row.status = 'fail'
     if (isDuplicateRequestError(error)) return
     ElMessage.error(error?.response?.data?.detail || '执行失败')
   } finally {
     executingTaskId.value = ''
+    endpointDialogSubmitting.value = false
+    if (executeSuccess) {
+      endpointDialogVisible.value = false
+      pendingExecuteTaskId.value = ''
+      pendingExecuteTaskTitle.value = ''
+    }
   }
 }
 
