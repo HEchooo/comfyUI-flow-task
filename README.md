@@ -114,37 +114,39 @@ sudo apt install -y nginx
 
 创建站点配置（只有 IP 也可以，`server_name` 直接写 IP）：
 
+注意：这里使用“前端服务模式”（Nginx 反代 `127.0.0.1:5173`）。
+不要再使用 `root /var/www/...` + `try_files` 的静态模式，否则重启 `flow-task-web` 不会生效。
+
 ```bash
 sudo tee /etc/nginx/sites-available/flow-task <<'NGINX'
 server {
     listen 80;
     server_name 35.188.136.53;
 
-    client_max_body_size 50m;
+    client_max_body_size 20m;
 
-    location /api/ {
-        proxy_pass http://127.0.0.1:8000/api/;
+    location /api/v1/execution/ws/ {
+        proxy_pass http://127.0.0.1:8000/api/v1/execution/ws/;
         proxy_http_version 1.1;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-
-        # WebSocket 支持
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_read_timeout 3600;
+    }
 
-        proxy_read_timeout 300s;
-        proxy_send_timeout 300s;
+    location /api/v1/ {
+        proxy_pass http://127.0.0.1:8000/api/v1/;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     }
 
     location / {
         proxy_pass http://127.0.0.1:5173;
         proxy_http_version 1.1;
         proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
     }
 }
 NGINX
@@ -157,6 +159,12 @@ sudo ln -sf /etc/nginx/sites-available/flow-task /etc/nginx/sites-enabled/flow-t
 sudo nginx -t
 sudo systemctl restart nginx
 ```
+
+如果你之前用过静态模式，请删除旧配置里的这三行并重载 Nginx：
+
+- `root /var/www/flow-task-web;`
+- `index index.html;`
+- `try_files $uri $uri/ /index.html;`
 
 ## 2. 日常运维命令
 
@@ -232,9 +240,11 @@ curl http://127.0.0.1:8000/healthz
 
 ```bash
 curl http://35.188.136.53/healthz
+curl -I http://127.0.0.1:5173
 ```
 
 返回 `{"status":"ok"}` 说明后端可用。
+`curl -I http://127.0.0.1:5173` 返回 `200/304` 说明前端服务可用。
 
 ## 6. 常见问题
 
