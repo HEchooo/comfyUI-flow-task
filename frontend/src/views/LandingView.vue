@@ -178,8 +178,7 @@
           <span class="footer-copy">© 2024</span>
         </div>
         <div class="footer-right">
-          <a href="#" class="footer-link">GitHub</a>
-          <a href="#" class="footer-link">文档</a>
+          <a href="https://github.com/HEchooo/comfyUI-flow-task" target="_blank" rel="noopener" class="footer-link">GitHub</a>
         </div>
       </div>
     </footer>
