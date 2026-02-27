@@ -12,6 +12,7 @@ from app.api.v1.router import api_router
 from app.core.config import settings
 from app.core.logging import setup_logging
 from app.db.init_db import init_db
+from app.services.task_scheduler_service import start_task_scheduler, stop_task_scheduler
 
 setup_logging(settings.log_level, settings.log_dir)
 logger = logging.getLogger("app")
@@ -65,6 +66,12 @@ async def startup_event() -> None:
     logger.info("Starting API with env=%s db=%s", settings.app_env, settings.database_url)
     if settings.auto_create_tables:
         await init_db()
+    start_task_scheduler()
+
+
+@app.on_event("shutdown")
+async def shutdown_event() -> None:
+    await stop_task_scheduler()
 
 
 @app.get("/healthz")

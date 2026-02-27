@@ -47,6 +47,28 @@
         <el-descriptions-item label="更新时间">{{ formatTime(task.updated_at) }}</el-descriptions-item>
         <el-descriptions-item label="描述" :span="2">{{ task.description || '-' }}</el-descriptions-item>
       </el-descriptions>
+      <div class="schedule-showcase">
+        <div class="schedule-showcase-head">
+          <div class="schedule-showcase-title">定时执行策略</div>
+          <el-tag :type="task.schedule_enabled ? 'success' : 'info'">
+            {{ task.schedule_enabled ? '已启用' : '未启用' }}
+          </el-tag>
+        </div>
+        <div class="schedule-showcase-grid">
+          <div class="showcase-item">
+            <div class="showcase-label">执行时间</div>
+            <div class="showcase-value">{{ task.schedule_at ? formatTime(task.schedule_at) : (task.schedule_time || '-') }}</div>
+          </div>
+          <div class="showcase-item">
+            <div class="showcase-label">端口策略</div>
+            <div class="showcase-value">{{ task.schedule_auto_dispatch ? '自动调度（最优端口）' : (task.schedule_port ? `固定端口 :${task.schedule_port}` : '-') }}</div>
+          </div>
+          <div class="showcase-item">
+            <div class="showcase-label">上次触发</div>
+            <div class="showcase-value">{{ formatTime(task.schedule_last_triggered_at) }}</div>
+          </div>
+        </div>
+      </div>
 
       <!-- Workflow info -->
       <div v-if="task.workflow_json" class="workflow-banner">
@@ -445,6 +467,55 @@ onMounted(loadData)
   flex-wrap: wrap;
 }
 
+.schedule-showcase {
+  margin-top: 14px;
+  padding: 14px;
+  border: 1px solid #cee2ff;
+  border-radius: 14px;
+  background: linear-gradient(160deg, #fbfdff 0%, #f1f7ff 58%, #edf8f5 100%);
+  box-shadow: 0 10px 24px rgba(27, 79, 158, 0.08);
+  animation: schedule-rise 0.28s ease;
+}
+
+.schedule-showcase-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.schedule-showcase-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1a4e97;
+}
+
+.schedule-showcase-grid {
+  margin-top: 10px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.showcase-item {
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid #d2e4fe;
+  background: rgba(255, 255, 255, 0.76);
+}
+
+.showcase-label {
+  font-size: 12px;
+  color: #6583ad;
+}
+
+.showcase-value {
+  margin-top: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #244f8d;
+}
+
 .workflow-banner {
   display: flex;
   align-items: center;
@@ -677,6 +748,17 @@ onMounted(loadData)
   }
 }
 
+@keyframes schedule-rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 @media (max-width: 768px) {
   .header-row {
     align-items: flex-start;
@@ -692,6 +774,15 @@ onMounted(loadData)
   }
 
   .result-kv-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .schedule-showcase-head {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .schedule-showcase-grid {
     grid-template-columns: 1fr;
   }
 }

@@ -18,6 +18,14 @@ async def init_db() -> None:
         await conn.execute(text("ALTER TABLE tasks ADD COLUMN IF NOT EXISTS workflow_json JSONB"))
         await conn.execute(text("ALTER TABLE tasks ADD COLUMN IF NOT EXISTS workflow_filename TEXT"))
         await conn.execute(text("ALTER TABLE tasks ADD COLUMN IF NOT EXISTS execution_state TEXT"))
+        await conn.execute(text("ALTER TABLE tasks ADD COLUMN IF NOT EXISTS schedule_enabled BOOLEAN NOT NULL DEFAULT FALSE"))
+        await conn.execute(text("ALTER TABLE tasks ADD COLUMN IF NOT EXISTS schedule_at TIMESTAMPTZ"))
+        await conn.execute(text("ALTER TABLE tasks ADD COLUMN IF NOT EXISTS schedule_time VARCHAR(5)"))
+        await conn.execute(text("ALTER TABLE tasks ADD COLUMN IF NOT EXISTS schedule_port INTEGER"))
+        await conn.execute(
+            text("ALTER TABLE tasks ADD COLUMN IF NOT EXISTS schedule_auto_dispatch BOOLEAN NOT NULL DEFAULT TRUE")
+        )
+        await conn.execute(text("ALTER TABLE tasks ADD COLUMN IF NOT EXISTS schedule_last_triggered_at TIMESTAMPTZ"))
         await conn.execute(text("ALTER TABLE task_templates ADD COLUMN IF NOT EXISTS workflow_json JSONB"))
         if dialect == "postgresql":
             await conn.execute(

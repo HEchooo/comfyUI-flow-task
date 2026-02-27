@@ -74,6 +74,11 @@ class TaskCreate(BaseModel):
     subtasks: list[SubTaskCreate] = Field(default_factory=list)
     workflow_json: dict | None = None
     workflow_filename: str | None = None
+    schedule_enabled: bool = False
+    schedule_at: datetime | None = None
+    schedule_time: str | None = None
+    schedule_port: int | None = None
+    schedule_auto_dispatch: bool = True
 
 
 class TaskPatch(BaseModel):
@@ -83,6 +88,11 @@ class TaskPatch(BaseModel):
     subtasks: list[SubTaskCreate] | None = None
     workflow_json: dict | None = None
     workflow_filename: str | None = None
+    schedule_enabled: bool | None = None
+    schedule_at: datetime | None = None
+    schedule_time: str | None = None
+    schedule_port: int | None = None
+    schedule_auto_dispatch: bool | None = None
 
 
 class TaskRead(BaseModel):
@@ -95,6 +105,12 @@ class TaskRead(BaseModel):
     execution_state: str | None = None
     workflow_json: dict | None
     workflow_filename: str | None = None
+    schedule_enabled: bool = False
+    schedule_at: datetime | None = None
+    schedule_time: str | None = None
+    schedule_port: int | None = None
+    schedule_auto_dispatch: bool = True
+    schedule_last_triggered_at: datetime | None = None
     created_at: datetime
     updated_at: datetime
     subtasks: list[SubTaskRead] = Field(default_factory=list)
@@ -107,6 +123,12 @@ class TaskListItem(BaseModel):
     description: str | None
     status: TaskStatus
     execution_state: str | None = None
+    schedule_enabled: bool = False
+    schedule_at: datetime | None = None
+    schedule_time: str | None = None
+    schedule_port: int | None = None
+    schedule_auto_dispatch: bool = True
+    schedule_last_triggered_at: datetime | None = None
     created_at: datetime
     updated_at: datetime
     subtask_count: int

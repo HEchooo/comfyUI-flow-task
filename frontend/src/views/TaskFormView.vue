@@ -32,6 +32,66 @@
         <WorkflowUpload v-model="form.workflow_json" v-model:filename="form.workflow_filename" />
       </el-form-item>
 
+      <el-divider content-position="left">定时执行</el-divider>
+      <div class="schedule-shell">
+        <div class="schedule-shell-head">
+          <div>
+            <div class="schedule-shell-title">自动化执行计划</div>
+            <div class="schedule-shell-sub">设定任务触发时间和端口策略，支持智能分配</div>
+          </div>
+          <el-form-item label="启用定时执行" class="schedule-switch-item">
+            <el-switch v-model="form.schedule_enabled" @change="handleScheduleEnabledChange" />
+          </el-form-item>
+        </div>
+        <transition name="schedule-fade">
+          <div v-if="form.schedule_enabled" class="schedule-panel">
+            <el-row :gutter="12">
+              <el-col :xs="24" :md="10">
+                <el-form-item label="执行日期" required>
+                  <el-date-picker
+                    v-model="form.schedule_at"
+                    type="datetime"
+                    format="YYYY-MM-DD HH:mm"
+                    placeholder="选择年月日时分"
+                    class="w-full"
+                  />
+                </el-form-item>
+              </el-col>
+              <el-col :xs="24" :md="7">
+                <el-form-item>
+                  <template #label>
+                    <span class="label-with-help">
+                      自动调度
+                      <el-tooltip content="自动调度：触发时自动选择空闲或排队最少的端口，无需手动指定端口。">
+                        <el-text class="help-icon">?</el-text>
+                      </el-tooltip>
+                    </span>
+                  </template>
+                  <el-switch v-model="form.schedule_auto_dispatch" @change="handleAutoDispatchChange" />
+                </el-form-item>
+              </el-col>
+              <el-col :xs="24" :md="7">
+                <el-form-item v-if="!form.schedule_auto_dispatch" label="固定端口" required>
+                  <el-select
+                    v-model="form.schedule_port"
+                    placeholder="选择端口"
+                    :loading="loadingComfyuiSettings"
+                    class="w-full"
+                  >
+                    <el-option v-for="port in comfyuiPorts" :key="port" :label="`:${port}`" :value="port" />
+                  </el-select>
+                </el-form-item>
+                <div v-else class="auto-dispatch-badge">系统将自动选取最优端口</div>
+              </el-col>
+            </el-row>
+            <div class="schedule-tip">
+              <span>当前服务器: {{ comfyuiServerIp || '-' }}</span>
+              <el-button text type="primary" @click="$router.push('/settings')">去设置端口池</el-button>
+            </div>
+          </div>
+        </transition>
+      </div>
+
       <div class="subtask-header">
         <h3>子任务</h3>
         <el-button type="primary" plain @click="addSubtask">新增子任务</el-button>
@@ -127,6 +187,7 @@ import { ElLoading, ElMessage } from 'element-plus'
 import PhotoInput from '../components/PhotoInput.vue'
 import WorkflowUpload from '../components/WorkflowUpload.vue'
 import { isDuplicateRequestError } from '../api/http'
+import { fetchComfyuiSettings } from '../api/settings'
 import { createTask, fetchTask, patchTask, uploadImageByFile } from '../api/tasks'
 import { fetchTaskTemplate, fetchTaskTemplates } from '../api/templates'
 import { renderMarkdown } from '../utils/markdown'
@@ -135,12 +196,19 @@ const route = useRoute()
 const router = useRouter()
 const submitting = ref(false)
 const applyingTemplate = ref(false)
+const loadingComfyuiSettings = ref(false)
+const comfyuiServerIp = ref('')
+const comfyuiPorts = ref([])
 
 const form = reactive({
   title: '',
   description: '',
   workflow_json: null,
   workflow_filename: '',
+  schedule_enabled: false,
+  schedule_at: null,
+  schedule_port: null,
+  schedule_auto_dispatch: true,
   subtasks: []
 })
 const templateOptions = ref([])
@@ -239,6 +307,13 @@ function normalizePayload() {
     description: form.description,
     workflow_json: form.workflow_json || null,
     workflow_filename: form.workflow_filename || null,
+    schedule_enabled: Boolean(form.schedule_enabled),
+    schedule_at: form.schedule_enabled && form.schedule_at ? new Date(form.schedule_at).toISOString() : null,
+    schedule_port:
+      form.schedule_enabled && !form.schedule_auto_dispatch && form.schedule_port
+        ? Number(form.schedule_port)
+        : null,
+    schedule_auto_dispatch: form.schedule_enabled ? Boolean(form.schedule_auto_dispatch) : false,
     subtasks: form.subtasks.map((item) => ({
       platform: item.platform,
       account_name: item.account_name,
@@ -295,6 +370,59 @@ function parseDateOnly(value) {
   return new Date(y, m - 1, d)
 }
 
+function defaultScheduleAt() {
+  const base = new Date()
+  base.setSeconds(0, 0)
+  base.setMinutes(base.getMinutes() + 5)
+  return base
+}
+
+function scheduleAtFromLegacyTime(value) {
+  const raw = String(value || '').trim()
+  if (!raw) return null
+  const parts = raw.split(':').map((item) => Number(item))
+  if (parts.length !== 2 || Number.isNaN(parts[0]) || Number.isNaN(parts[1])) return null
+  const dt = new Date()
+  dt.setSeconds(0, 0)
+  dt.setHours(parts[0], parts[1], 0, 0)
+  return dt
+}
+
+function handleScheduleEnabledChange(enabled) {
+  if (!enabled) {
+    form.schedule_auto_dispatch = true
+    form.schedule_port = null
+    form.schedule_at = null
+    return
+  }
+  form.schedule_auto_dispatch = true
+  if (!form.schedule_at) {
+    form.schedule_at = defaultScheduleAt()
+  }
+}
+
+function handleAutoDispatchChange(enabled) {
+  if (enabled) {
+    form.schedule_port = null
+  }
+}
+
+async function loadComfyuiSettings() {
+  loadingComfyuiSettings.value = true
+  try {
+    const data = await fetchComfyuiSettings()
+    comfyuiServerIp.value = data.server_ip || ''
+    comfyuiPorts.value = Array.isArray(data.ports) ? data.ports : []
+  } catch (error) {
+    if (isDuplicateRequestError(error)) return
+    comfyuiServerIp.value = ''
+    comfyuiPorts.value = []
+    ElMessage.error(error?.response?.data?.detail || '加载 ComfyUI 设置失败')
+  } finally {
+    loadingComfyuiSettings.value = false
+  }
+}
+
 async function uploadPendingPhotos() {
   const pending = []
   form.subtasks.forEach((subtask, subtaskIndex) => {
@@ -346,6 +474,7 @@ async function uploadPendingPhotos() {
 }
 
 async function loadDetail() {
+  await loadComfyuiSettings()
   if (!isEdit.value) {
     await loadTemplateOptions()
     addSubtask()
@@ -358,6 +487,10 @@ async function loadDetail() {
     form.description = data.description || ''
     form.workflow_json = data.workflow_json || null
     form.workflow_filename = data.workflow_filename || ''
+    form.schedule_enabled = Boolean(data.schedule_enabled)
+    form.schedule_at = data.schedule_at ? new Date(data.schedule_at) : scheduleAtFromLegacyTime(data.schedule_time)
+    form.schedule_auto_dispatch = Boolean(data.schedule_auto_dispatch)
+    form.schedule_port = Number.isInteger(data.schedule_port) ? data.schedule_port : null
     form.subtasks = data.subtasks.map((item) => ({
       platform: item.platform,
       account_name: item.account_name,
@@ -381,6 +514,16 @@ async function submit() {
   }
   if (!validateSubtasks()) {
     return
+  }
+  if (form.schedule_enabled) {
+    if (!form.schedule_at) {
+      ElMessage.warning('请设置定时执行日期')
+      return
+    }
+    if (!form.schedule_auto_dispatch && !form.schedule_port) {
+      ElMessage.warning('请为定时执行选择端口，或启用自动调度')
+      return
+    }
   }
 
   submitting.value = true
@@ -476,6 +619,100 @@ onMounted(loadDetail)
   background: #f9fcff;
 }
 
+.schedule-panel {
+  margin-top: 10px;
+  padding: 14px 14px 12px;
+  border: 1px solid #cae0ff;
+  border-radius: 14px;
+  background: linear-gradient(160deg, #f9fcff 0%, #f1f7ff 58%, #eef8f7 100%);
+  box-shadow: 0 10px 22px rgba(29, 82, 163, 0.08);
+}
+
+.schedule-shell {
+  padding: 12px;
+  border-radius: 14px;
+  border: 1px solid #d7e8ff;
+  background: linear-gradient(180deg, #fcfeff 0%, #f7fbff 100%);
+}
+
+.schedule-shell-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.schedule-shell-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1a4e97;
+}
+
+.schedule-shell-sub {
+  margin-top: 2px;
+  font-size: 12px;
+  color: #6d85a8;
+}
+
+.schedule-switch-item {
+  margin-bottom: 0;
+}
+
+.schedule-tip {
+  margin-top: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  color: #5f7498;
+}
+
+.w-full {
+  width: 100%;
+}
+
+.label-with-help {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.help-icon {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  background: #4f79b3;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: help;
+}
+
+.auto-dispatch-badge {
+  margin-top: 30px;
+  font-size: 12px;
+  color: #2e6d56;
+  background: rgba(53, 166, 127, 0.14);
+  border: 1px solid rgba(53, 166, 127, 0.3);
+  border-radius: 999px;
+  padding: 6px 10px;
+  width: fit-content;
+}
+
+.schedule-fade-enter-active,
+.schedule-fade-leave-active {
+  transition: all 0.26s ease;
+}
+
+.schedule-fade-enter-from,
+.schedule-fade-leave-to {
+  opacity: 0;
+  transform: translateY(-6px);
+}
+
 .prompts-title {
   font-size: 13px;
   font-weight: 600;
@@ -517,6 +754,21 @@ onMounted(loadDetail)
   }
 
   .template-select {
+    width: 100%;
+  }
+
+  .schedule-tip {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .schedule-shell-head {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .schedule-switch-item {
     width: 100%;
   }
 }

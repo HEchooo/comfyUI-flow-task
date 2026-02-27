@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import copy
+from datetime import datetime, timezone
 from uuid import UUID
 
 from fastapi import HTTPException, status
@@ -16,6 +17,57 @@ from app.models.subtask import SubTask
 from app.models.task import Task
 from app.schemas.task import CallbackGeneratedImageItem, SubTaskCreate, SubTaskUpdate, TaskCreate, TaskPatch
 from app.services.status import aggregate_parent_status, ensure_transition
+
+
+def _normalize_schedule_fields(
+    *,
+    schedule_enabled: bool,
+    schedule_at: datetime | None,
+    schedule_time: str | None,
+    schedule_port: int | None,
+    schedule_auto_dispatch: bool,
+) -> tuple[bool, datetime | None, str | None, int | None, bool]:
+    if not schedule_enabled:
+        return False, None, None, None, False
+
+    normalized_schedule_at: datetime | None = None
+    if schedule_at is not None:
+        normalized_schedule_at = (
+            schedule_at.replace(tzinfo=timezone.utc)
+            if schedule_at.tzinfo is None
+            else schedule_at.astimezone(timezone.utc)
+        )
+
+    normalized_time = str(schedule_time or "").strip() or None
+    if normalized_schedule_at is None and normalized_time is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="schedule_at is required when schedule_enabled is true",
+        )
+    if normalized_time is not None:
+        try:
+            datetime.strptime(normalized_time, "%H:%M")
+        except ValueError as exc:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="schedule_time must be in HH:MM format",
+            ) from exc
+
+    if schedule_auto_dispatch:
+        return True, normalized_schedule_at, normalized_time, None, True
+
+    if schedule_port is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="schedule_port is required when auto dispatch is disabled",
+        )
+    if int(schedule_port) < 1 or int(schedule_port) > 65535:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="schedule_port must be between 1 and 65535",
+        )
+
+    return True, normalized_schedule_at, normalized_time, int(schedule_port), False
 
 
 def bind_task_id_to_workflow(workflow_json: dict | None, task_id: UUID) -> tuple[dict | None, bool, int]:
@@ -142,6 +194,13 @@ async def _insert_subtasks(
 
 
 async def create_task(session: AsyncSession, payload: TaskCreate) -> Task:
+    schedule_enabled, schedule_at, schedule_time, schedule_port, schedule_auto_dispatch = _normalize_schedule_fields(
+        schedule_enabled=payload.schedule_enabled,
+        schedule_at=payload.schedule_at,
+        schedule_time=payload.schedule_time,
+        schedule_port=payload.schedule_port,
+        schedule_auto_dispatch=payload.schedule_auto_dispatch,
+    )
     task = Task(
         title=payload.title,
         description=payload.description,
@@ -149,6 +208,11 @@ async def create_task(session: AsyncSession, payload: TaskCreate) -> Task:
         extra=payload.extra,
         workflow_json=payload.workflow_json,
         workflow_filename=payload.workflow_filename,
+        schedule_enabled=schedule_enabled,
+        schedule_at=schedule_at,
+        schedule_time=schedule_time,
+        schedule_port=schedule_port,
+        schedule_auto_dispatch=schedule_auto_dispatch,
     )
     session.add(task)
     await session.flush()
@@ -182,6 +246,12 @@ async def list_tasks(
         Task.description,
         Task.status,
         Task.execution_state,
+        Task.schedule_enabled,
+        Task.schedule_at,
+        Task.schedule_time,
+        Task.schedule_port,
+        Task.schedule_auto_dispatch,
+        Task.schedule_last_triggered_at,
         Task.created_at,
         Task.updated_at,
         count_subtasks.label("subtask_count"),
@@ -208,6 +278,12 @@ async def list_tasks(
             "description": row.description,
             "status": row.status,
             "execution_state": row.execution_state,
+            "schedule_enabled": bool(row.schedule_enabled),
+            "schedule_at": row.schedule_at,
+            "schedule_time": row.schedule_time,
+            "schedule_port": row.schedule_port,
+            "schedule_auto_dispatch": bool(row.schedule_auto_dispatch),
+            "schedule_last_triggered_at": row.schedule_last_triggered_at,
             "created_at": row.created_at,
             "updated_at": row.updated_at,
             "subtask_count": int(row.subtask_count or 0),
@@ -250,6 +326,46 @@ async def patch_task(session: AsyncSession, task: Task, payload: TaskPatch) -> T
         changed = True
     if payload.workflow_filename is not None:
         task.workflow_filename = payload.workflow_filename
+        changed = True
+
+    if (
+        payload.schedule_enabled is not None
+        or payload.schedule_at is not None
+        or payload.schedule_time is not None
+        or payload.schedule_port is not None
+        or payload.schedule_auto_dispatch is not None
+    ):
+        previous_schedule_enabled = bool(task.schedule_enabled)
+        previous_schedule_at = task.schedule_at
+        previous_schedule_time = task.schedule_time
+        next_schedule_enabled = (
+            payload.schedule_enabled if payload.schedule_enabled is not None else bool(task.schedule_enabled)
+        )
+        next_schedule_at = payload.schedule_at if payload.schedule_at is not None else task.schedule_at
+        next_schedule_time = payload.schedule_time if payload.schedule_time is not None else task.schedule_time
+        next_schedule_port = payload.schedule_port if payload.schedule_port is not None else task.schedule_port
+        next_schedule_auto_dispatch = (
+            payload.schedule_auto_dispatch
+            if payload.schedule_auto_dispatch is not None
+            else bool(task.schedule_auto_dispatch)
+        )
+
+        schedule_enabled, schedule_at, schedule_time, schedule_port, schedule_auto_dispatch = _normalize_schedule_fields(
+            schedule_enabled=bool(next_schedule_enabled),
+            schedule_at=next_schedule_at,
+            schedule_time=next_schedule_time,
+            schedule_port=next_schedule_port,
+            schedule_auto_dispatch=bool(next_schedule_auto_dispatch),
+        )
+        task.schedule_enabled = schedule_enabled
+        task.schedule_at = schedule_at
+        task.schedule_time = schedule_time
+        task.schedule_port = schedule_port
+        task.schedule_auto_dispatch = schedule_auto_dispatch
+        if not schedule_enabled:
+            task.schedule_last_triggered_at = None
+        elif previous_schedule_enabled != schedule_enabled or previous_schedule_at != schedule_at or previous_schedule_time != schedule_time:
+            task.schedule_last_triggered_at = None
         changed = True
 
     if payload.subtasks is not None:

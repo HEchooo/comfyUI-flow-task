@@ -50,14 +50,31 @@
           <el-tag :type="taskStatusType(scope.row.status)">{{ scope.row.status }}</el-tag>
         </template>
       </el-table-column>
+      <el-table-column label="定时执行" min-width="180">
+        <template #default="scope">
+          <el-tag v-if="scope.row.schedule_enabled" type="success">
+            {{ formatSchedule(scope.row) }}
+          </el-tag>
+          <el-tag v-else type="info">未启用</el-tag>
+        </template>
+      </el-table-column>
       <el-table-column prop="subtask_count" label="子任务数" width="100" />
       <el-table-column prop="created_at" label="创建时间" min-width="200">
         <template #default="scope">{{ formatTime(scope.row.created_at) }}</template>
       </el-table-column>
-      <el-table-column label="操作" width="360" fixed="right">
+      <el-table-column label="操作" width="430" fixed="right">
         <template #default="scope">
           <el-button link type="primary" :disabled="loading || deletingTaskId === scope.row.id || cancellingTaskId === scope.row.id" @click="$router.push(`/tasks/${scope.row.id}`)">详情</el-button>
           <el-button link :disabled="loading || deletingTaskId === scope.row.id || cancellingTaskId === scope.row.id" @click="$router.push(`/tasks/${scope.row.id}/edit`)">编辑</el-button>
+          <el-button
+            link
+            type="warning"
+            v-if="scope.row.status !== 'success'"
+            :disabled="loading || deletingTaskId === scope.row.id || cancellingTaskId === scope.row.id"
+            @click="openScheduleDialog(scope.row)"
+          >
+            定时
+          </el-button>
           <el-button
             v-if="scope.row.status === 'running'"
             link
@@ -116,6 +133,64 @@
     :submitting="endpointDialogSubmitting"
     @confirm="handleConfirmExecute"
   />
+  <el-dialog
+    v-model="scheduleDialogVisible"
+    title="快速设置定时"
+    width="min(640px, 92vw)"
+    :close-on-click-modal="false"
+  >
+    <div class="schedule-dialog-shell">
+      <div class="schedule-dialog-head">
+        <div>
+          <div class="schedule-dialog-title">任务定时策略</div>
+          <div class="schedule-dialog-sub">支持自动调度与固定端口两种执行模式</div>
+        </div>
+        <el-form-item label="启用定时" class="dialog-switch-item">
+          <el-switch v-model="scheduleForm.schedule_enabled" />
+        </el-form-item>
+      </div>
+      <transition name="dialog-fade">
+        <el-form v-if="scheduleForm.schedule_enabled" label-position="top" class="schedule-dialog-form">
+          <el-form-item label="执行日期" required>
+            <el-date-picker
+              v-model="scheduleForm.schedule_at"
+              type="datetime"
+              format="YYYY-MM-DD HH:mm"
+              placeholder="选择年月日时分"
+              class="dialog-full"
+            />
+          </el-form-item>
+          <el-form-item>
+            <template #label>
+              <span class="label-with-help">
+                自动调度
+                <el-tooltip content="自动调度：触发时自动选择空闲或排队最少的端口，无需手动指定端口。">
+                  <el-text class="help-icon">?</el-text>
+                </el-tooltip>
+              </span>
+            </template>
+            <el-switch v-model="scheduleForm.schedule_auto_dispatch" />
+          </el-form-item>
+          <el-form-item v-if="!scheduleForm.schedule_auto_dispatch" label="固定端口" required>
+            <el-select
+              v-model="scheduleForm.schedule_port"
+              :loading="loadingScheduleSettings"
+              placeholder="选择端口"
+              class="dialog-full"
+            >
+              <el-option v-for="port in schedulePorts" :key="port" :label="`:${port}`" :value="port" />
+            </el-select>
+          </el-form-item>
+          <div v-else class="auto-dispatch-hint">系统将在触发时自动选择最优端口</div>
+          <div class="schedule-server-tip">当前服务器: {{ scheduleServerIp || '-' }}</div>
+        </el-form>
+      </transition>
+    </div>
+    <template #footer>
+      <el-button @click="scheduleDialogVisible = false">取消</el-button>
+      <el-button type="primary" :loading="savingSchedule" @click="saveQuickSchedule">保存</el-button>
+    </template>
+  </el-dialog>
 
 </template>
 
@@ -125,9 +200,10 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 
 import ExecutionProgress from '../components/ExecutionProgress.vue'
 import ExecuteEndpointDialog from '../components/ExecuteEndpointDialog.vue'
-import { deleteTask, fetchTasks } from '../api/tasks'
+import { deleteTask, fetchTasks, patchTask } from '../api/tasks'
 import { cancelExecutionTask, executeTask } from '../api/execution'
 import { isDuplicateRequestError } from '../api/http'
+import { fetchComfyuiSettings } from '../api/settings'
 import { TASK_STATUS_OPTIONS, taskStatusType } from '../utils/status'
 
 const loading = ref(false)
@@ -140,6 +216,18 @@ const endpointDialogVisible = ref(false)
 const endpointDialogSubmitting = ref(false)
 const pendingExecuteTaskId = ref('')
 const pendingExecuteTaskTitle = ref('')
+const scheduleDialogVisible = ref(false)
+const savingSchedule = ref(false)
+const loadingScheduleSettings = ref(false)
+const scheduleTaskId = ref('')
+const scheduleServerIp = ref('')
+const schedulePorts = ref([])
+const scheduleForm = reactive({
+  schedule_enabled: false,
+  schedule_at: null,
+  schedule_auto_dispatch: true,
+  schedule_port: null
+})
 
 const filters = reactive({
   taskId: '',
@@ -155,6 +243,110 @@ const pagination = reactive({
 function formatTime(value) {
   if (!value) return '-'
   return new Date(value).toLocaleString()
+}
+
+function formatSchedule(row) {
+  const when = row.schedule_at ? formatTime(row.schedule_at) : (row.schedule_time || '--')
+  if (row.schedule_auto_dispatch) {
+    return `${when} 自动调度`
+  }
+  if (row.schedule_port) {
+    return `${when} :${row.schedule_port}`
+  }
+  return `${when} 未选端口`
+}
+
+function defaultScheduleAt() {
+  const value = new Date()
+  value.setSeconds(0, 0)
+  value.setMinutes(value.getMinutes() + 5)
+  return value
+}
+
+function scheduleAtFromLegacyTime(value) {
+  const raw = String(value || '').trim()
+  if (!raw) return null
+  const parts = raw.split(':').map((item) => Number(item))
+  if (parts.length !== 2 || Number.isNaN(parts[0]) || Number.isNaN(parts[1])) return null
+  const dt = new Date()
+  dt.setSeconds(0, 0)
+  dt.setHours(parts[0], parts[1], 0, 0)
+  return dt
+}
+
+async function loadScheduleSettings() {
+  loadingScheduleSettings.value = true
+  try {
+    const result = await fetchComfyuiSettings()
+    scheduleServerIp.value = result.server_ip || ''
+    schedulePorts.value = Array.isArray(result.ports) ? result.ports : []
+  } catch (error) {
+    if (isDuplicateRequestError(error)) return
+    scheduleServerIp.value = ''
+    schedulePorts.value = []
+    ElMessage.error(error?.response?.data?.detail || '加载端口设置失败')
+  } finally {
+    loadingScheduleSettings.value = false
+  }
+}
+
+async function openScheduleDialog(row) {
+  if (String(row.status || '') === 'success') {
+    return
+  }
+  scheduleTaskId.value = String(row.id)
+  scheduleForm.schedule_enabled = Boolean(row.schedule_enabled)
+  scheduleForm.schedule_at = row.schedule_at
+    ? new Date(row.schedule_at)
+    : (scheduleAtFromLegacyTime(row.schedule_time) || defaultScheduleAt())
+  scheduleForm.schedule_auto_dispatch = row.schedule_enabled
+    ? Boolean(row.schedule_auto_dispatch)
+    : true
+  scheduleForm.schedule_port = Number.isInteger(row.schedule_port) ? row.schedule_port : null
+  if (scheduleForm.schedule_auto_dispatch) {
+    scheduleForm.schedule_port = null
+  }
+  await loadScheduleSettings()
+  scheduleDialogVisible.value = true
+}
+
+async function saveQuickSchedule() {
+  if (!scheduleTaskId.value) return
+  if (savingSchedule.value) return
+  if (scheduleForm.schedule_enabled) {
+    if (!scheduleForm.schedule_at) {
+      ElMessage.warning('请设置执行日期')
+      return
+    }
+    if (!scheduleForm.schedule_auto_dispatch && !scheduleForm.schedule_port) {
+      ElMessage.warning('请选择固定端口，或开启自动调度')
+      return
+    }
+  }
+
+  savingSchedule.value = true
+  try {
+    await patchTask(scheduleTaskId.value, {
+      schedule_enabled: Boolean(scheduleForm.schedule_enabled),
+      schedule_at: scheduleForm.schedule_enabled && scheduleForm.schedule_at
+        ? new Date(scheduleForm.schedule_at).toISOString()
+        : null,
+      schedule_auto_dispatch: scheduleForm.schedule_enabled
+        ? Boolean(scheduleForm.schedule_auto_dispatch)
+        : false,
+      schedule_port: scheduleForm.schedule_enabled && !scheduleForm.schedule_auto_dispatch && scheduleForm.schedule_port
+        ? Number(scheduleForm.schedule_port)
+        : null
+    })
+    ElMessage.success('定时设置已保存')
+    scheduleDialogVisible.value = false
+    await loadTasks()
+  } catch (error) {
+    if (isDuplicateRequestError(error)) return
+    ElMessage.error(error?.response?.data?.detail || '定时设置保存失败')
+  } finally {
+    savingSchedule.value = false
+  }
 }
 
 function getRowKey(row) {
@@ -378,6 +570,96 @@ onMounted(loadTasks)
   justify-content: flex-end;
 }
 
+.dialog-full {
+  width: 100%;
+}
+
+.schedule-dialog-shell {
+  padding: 12px;
+  border: 1px solid #d6e7ff;
+  border-radius: 14px;
+  background: linear-gradient(160deg, #fbfdff 0%, #f2f8ff 56%, #eef9f6 100%);
+}
+
+.schedule-dialog-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.schedule-dialog-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1a4e97;
+}
+
+.schedule-dialog-sub {
+  margin-top: 2px;
+  font-size: 12px;
+  color: #6b84a8;
+}
+
+.dialog-switch-item {
+  margin-bottom: 0;
+}
+
+.schedule-dialog-form {
+  margin-top: 10px;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid #cbe1ff;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.schedule-server-tip {
+  margin-top: 2px;
+  font-size: 12px;
+  color: #5f7498;
+}
+
+.label-with-help {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.help-icon {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  background: #4f79b3;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: help;
+}
+
+.auto-dispatch-hint {
+  margin-bottom: 8px;
+  font-size: 12px;
+  color: #2f6f57;
+  background: rgba(53, 166, 127, 0.14);
+  border: 1px solid rgba(53, 166, 127, 0.3);
+  border-radius: 999px;
+  padding: 6px 10px;
+  width: fit-content;
+}
+
+.dialog-fade-enter-active,
+.dialog-fade-leave-active {
+  transition: all 0.24s ease;
+}
+
+.dialog-fade-enter-from,
+.dialog-fade-leave-to {
+  opacity: 0;
+  transform: translateY(-6px);
+}
+
 @keyframes rise {
   from {
     opacity: 0;
@@ -400,6 +682,15 @@ onMounted(loadTasks)
   }
 
   .status-filter {
+    width: 100%;
+  }
+
+  .schedule-dialog-head {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .dialog-switch-item {
     width: 100%;
   }
 }

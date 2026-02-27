@@ -3,7 +3,7 @@ from __future__ import annotations
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import DateTime, Enum, JSON, String, Text, Uuid
+from sqlalchemy import Boolean, DateTime, Enum, Integer, JSON, String, Text, Uuid
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
@@ -26,6 +26,12 @@ class Task(Base):
     execution_state: Mapped[str | None] = mapped_column(Text, nullable=True)
     workflow_json: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     workflow_filename: Mapped[str | None] = mapped_column(Text, nullable=True)
+    schedule_enabled: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    schedule_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    schedule_time: Mapped[str | None] = mapped_column(String(5), nullable=True)
+    schedule_port: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    schedule_auto_dispatch: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    schedule_last_triggered_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, nullable=False)
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=utcnow, onupdate=utcnow, nullable=False
