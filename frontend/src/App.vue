@@ -1,6 +1,8 @@
 <template>
   <router-view v-slot="{ Component }">
-    <component :is="Component" class="route-view" />
+    <transition name="root-fade" mode="out-in">
+      <component :is="Component" class="route-view" />
+    </transition>
   </router-view>
 </template>
 
@@ -85,5 +87,17 @@ body {
 /* ── Login page background ── */
 .route-view:has(.login-page) {
   background: linear-gradient(180deg, #f4f8ff 0%, #eef4fb 100%);
+}
+
+/* ── Root Route Transition ── */
+.root-fade-enter-active,
+.root-fade-leave-active {
+  transition: opacity 0.35s ease, transform 0.35s ease;
+}
+
+.root-fade-enter-from,
+.root-fade-leave-to {
+  opacity: 0;
+  transform: translateY(15px);
 }
 </style>

@@ -474,6 +474,17 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
+@keyframes slideDownFade {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .landing-page {
   min-height: 100vh;
   background: #fafafa;
@@ -619,6 +630,8 @@ onBeforeUnmount(() => {
   background: rgba(255, 255, 255, 0.8);
   backdrop-filter: blur(12px);
   border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  opacity: 0;
+  animation: slideDownFade 0.6s ease-out forwards;
 }
 
 .nav-logo {
@@ -682,6 +695,8 @@ onBeforeUnmount(() => {
   font-weight: 600;
   letter-spacing: 0.02em;
   margin-bottom: 24px;
+  opacity: 0;
+  animation: slideDownFade 0.6s ease-out 0.1s forwards;
 }
 
 .badge-dot {
@@ -698,6 +713,8 @@ onBeforeUnmount(() => {
   letter-spacing: -0.03em;
   color: #1a1a2e;
   margin-bottom: 20px;
+  opacity: 0;
+  animation: slideDownFade 0.6s ease-out 0.2s forwards;
 }
 
 .title-line {
@@ -726,12 +743,16 @@ onBeforeUnmount(() => {
   color: #475569;
   margin-bottom: 32px;
   max-width: 600px;
+  opacity: 0;
+  animation: slideDownFade 0.6s ease-out 0.3s forwards;
 }
 
 .content-actions {
   display: flex;
   gap: 14px;
   flex-wrap: wrap;
+  opacity: 0;
+  animation: slideDownFade 0.6s ease-out 0.4s forwards;
 }
 
 .action-btn {
@@ -773,6 +794,8 @@ onBeforeUnmount(() => {
   display: flex;
   gap: 16px;
   margin-top: 40px;
+  opacity: 0;
+  animation: slideDownFade 0.6s ease-out 0.5s forwards;
 }
 
 .feature-mini {
