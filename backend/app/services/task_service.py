@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 from uuid import UUID
 
 from fastapi import HTTPException, status
-from sqlalchemy import Select, delete, func, select
+from sqlalchemy import Select, delete, func, literal_column, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -258,6 +258,11 @@ async def list_tasks(
         Task.updated_at,
         count_subtasks.label("subtask_count"),
         Task.workflow_json.isnot(None).label("has_workflow"),
+        literal_column(
+            "CASE WHEN tasks.workflow_json IS NOT NULL"
+            " THEN (SELECT count(*) FROM jsonb_object_keys(tasks.workflow_json))"
+            " ELSE 0 END"
+        ).label("workflow_node_count"),
     )
     total_stmt = select(func.count(Task.id))
 
@@ -290,6 +295,7 @@ async def list_tasks(
             "updated_at": row.updated_at,
             "subtask_count": int(row.subtask_count or 0),
             "has_workflow": bool(row.has_workflow),
+            "workflow_node_count": int(row.workflow_node_count or 0),
         }
         for row in rows
     ]

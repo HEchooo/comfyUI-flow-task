@@ -147,6 +147,7 @@ class TaskListItem(BaseModel):
     updated_at: datetime
     subtask_count: int
     has_workflow: bool
+    workflow_node_count: int = 0
 
 
 class TaskListResponse(BaseModel):

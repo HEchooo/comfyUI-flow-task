@@ -38,6 +38,7 @@
               :task-status="String(scope.row.status || '')"
               :initial-state="scope.row.execution_state"
               :active="isExpanded(scope.row.id)"
+              :total-nodes="scope.row.workflow_node_count || 0"
             />
           </div>
         </template>

@@ -6,6 +6,21 @@
         <span class="task-id-text">任务: {{ taskId }}</span>
       </div>
 
+      <div v-if="showTaskProgress" class="task-progress-section">
+        <div class="task-progress-header">
+          <span class="task-progress-label">任务进度</span>
+          <span class="task-progress-fraction">{{ completedNodes }} / {{ taskTotalNodes }} 节点</span>
+        </div>
+        <el-progress
+          :percentage="taskProgressPercent"
+          :status="execStatus === 'error' ? 'exception' : execStatus === 'completed' ? 'success' : undefined"
+          :striped="execStatus === 'running'"
+          :striped-flow="execStatus === 'running'"
+          :duration="3"
+          :stroke-width="10"
+        />
+      </div>
+
       <div v-if="currentProgress.max > 0" class="progress-section">
         <div class="progress-label">
           节点 {{ currentProgressNodeLabel }} — {{ currentProgress.value }} / {{ currentProgress.max }}
@@ -65,6 +80,21 @@
       <div class="status-row">
         <el-tag :type="statusTagType" size="large">{{ statusLabel }}</el-tag>
         <span class="task-id-text">任务: {{ taskId }}</span>
+      </div>
+
+      <div v-if="showTaskProgress" class="task-progress-section">
+        <div class="task-progress-header">
+          <span class="task-progress-label">任务进度</span>
+          <span class="task-progress-fraction">{{ completedNodes }} / {{ taskTotalNodes }} 节点</span>
+        </div>
+        <el-progress
+          :percentage="taskProgressPercent"
+          :status="execStatus === 'error' ? 'exception' : execStatus === 'completed' ? 'success' : undefined"
+          :striped="execStatus === 'running'"
+          :striped-flow="execStatus === 'running'"
+          :duration="3"
+          :stroke-width="10"
+        />
       </div>
 
       <div v-if="currentProgress.max > 0" class="progress-section">
@@ -131,7 +161,8 @@ const props = defineProps({
   inline: { type: Boolean, default: false },
   active: { type: Boolean, default: false },
   taskStatus: { type: String, default: '' },
-  initialState: { type: [Object, String], default: null }
+  initialState: { type: [Object, String], default: null },
+  totalNodes: { type: Number, default: 0 }
 })
 
 const emit = defineEmits(['update:modelValue'])
@@ -153,6 +184,7 @@ const eventLog = ref([])
 const logEl = ref(null)
 const activeTaskId = ref('')
 const currentPromptId = ref('')
+const completedNodes = ref(0)
 
 let ws = null
 let pingTimer = null
@@ -175,6 +207,15 @@ const progressPercent = computed(() => {
   if (!currentProgress.value.max) return 0
   return Math.round((currentProgress.value.value / currentProgress.value.max) * 100)
 })
+
+// 任务级进度：基于已完成节点数 / 总节点数
+const taskTotalNodes = computed(() => props.totalNodes || 0)
+const taskProgressPercent = computed(() => {
+  if (!taskTotalNodes.value) return 0
+  if (execStatus.value === 'completed') return 100
+  return Math.min(99, Math.round((completedNodes.value / taskTotalNodes.value) * 100))
+})
+const showTaskProgress = computed(() => taskTotalNodes.value > 0 && execStatus.value !== 'idle')
 
 const currentNodeLabel = computed(() =>
   formatNodeLabel(currentNodeId.value, currentNodeTitle.value, currentNodeClassType.value)
@@ -219,6 +260,7 @@ function resetState() {
   errorMessage.value = ''
   eventLog.value = []
   currentPromptId.value = ''
+  completedNodes.value = 0
 }
 
 function parseExecutionStateInput(raw) {
@@ -354,6 +396,7 @@ function handleMessage(message) {
     if (promptId) {
       currentPromptId.value = promptId
     }
+    completedNodes.value = 0
     execStatus.value = 'running'
     errorMessage.value = ''
     addLog('执行开始', 'info')
@@ -383,6 +426,7 @@ function handleMessage(message) {
   }
 
   if (type === 'executed') {
+    completedNodes.value += 1
     addLog(`节点 ${formatNodeLabel(data.node_id, data.node_title, data.node_class_type)} 执行完毕`, 'success')
     return
   }
@@ -390,6 +434,7 @@ function handleMessage(message) {
   if (type === 'execution_cached') {
     const nodeInfos = Array.isArray(data.node_infos) ? data.node_infos : []
     if (nodeInfos.length) {
+      completedNodes.value += nodeInfos.length
       const labels = nodeInfos.map((item) =>
         formatNodeLabel(item.node_id, item.node_title, item.node_class_type)
       )
@@ -397,7 +442,10 @@ function handleMessage(message) {
       return
     }
     const nodes = Array.isArray(data.nodes) ? data.nodes : []
-    if (nodes.length) addLog(`缓存节点: ${nodes.join(', ')}`, 'info')
+    if (nodes.length) {
+      completedNodes.value += nodes.length
+      addLog(`缓存节点: ${nodes.join(', ')}`, 'info')
+    }
     return
   }
 
@@ -522,6 +570,34 @@ onBeforeUnmount(() => {
   font-size: 12px;
   color: #7a96bb;
   word-break: break-all;
+}
+
+.task-progress-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #f0f7ff 0%, #e8f3ff 100%);
+  border: 1px solid #c8dff8;
+}
+
+.task-progress-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.task-progress-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #1a4e97;
+}
+
+.task-progress-fraction {
+  font-size: 12px;
+  color: #4a72b0;
+  font-variant-numeric: tabular-nums;
 }
 
 .progress-section {

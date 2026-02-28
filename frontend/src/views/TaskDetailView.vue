@@ -90,6 +90,7 @@
           :task-status="String(task.status || '')"
           :initial-state="parsedExecutionState"
           :active="true"
+          :total-nodes="task.workflow_json ? Object.keys(task.workflow_json).length : 0"
         />
       </div>
 
