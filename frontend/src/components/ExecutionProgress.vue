@@ -298,6 +298,9 @@ function applyStateSync(data, options = {}) {
   currentNodeId.value = data.current_node_id || ''
   currentNodeTitle.value = data.current_node_title || ''
   currentNodeClassType.value = data.current_node_class_type || ''
+  if (typeof data.completed_node_count === 'number') {
+    completedNodes.value = data.completed_node_count
+  }
   if (data.prompt_id) {
     currentPromptId.value = data.prompt_id
   }

@@ -88,6 +88,7 @@ def _new_execution_state(task_id: str, *, status_value: str) -> dict:
         "progress": {"node_id": "", "node_title": "", "node_class_type": "", "value": 0, "max": 0},
         "error_message": "",
         "event_log": [],
+        "completed_node_count": 0,
         "updated_at": _now_iso(),
     }
 
@@ -709,6 +710,7 @@ async def _load_persisted_execution_state(task_id: str) -> dict | None:
         persisted["progress"] = progress
         persisted.setdefault("error_message", "")
         persisted.setdefault("event_log", [])
+        persisted.setdefault("completed_node_count", 0)
         persisted.setdefault("updated_at", _now_iso())
         persisted["_node_map"] = _build_workflow_node_map(task.workflow_json)
         return persisted
@@ -853,6 +855,7 @@ async def _run_comfyui_listener(
                 if state is not None:
                     state["prompt_id"] = event.prompt_id
                     state["prompt_ids"] = sorted(prompt_ids)
+                    state["completed_node_count"] = 0
                     state["updated_at"] = _now_iso()
                     _mark_execution_state_dirty(task_id)
             return
@@ -895,6 +898,10 @@ async def _run_comfyui_listener(
             message["data"]["node_title"] = node_title
             message["data"]["node_class_type"] = node_class_type
             if node_id:
+                state = _execution_states.get(task_id)
+                if state is not None:
+                    state["completed_node_count"] = int(state.get("completed_node_count") or 0) + 1
+                    state["updated_at"] = _now_iso()
                 _append_event_log(task_id, f"节点 {node_display} 执行完毕", "success")
 
         elif event.event_type == "execution_error":
@@ -940,6 +947,10 @@ async def _run_comfyui_listener(
                     for info in node_infos
                 ]
                 _append_event_log(task_id, f"缓存节点: {', '.join(labels)}", "info")
+                state = _execution_states.get(task_id)
+                if state is not None:
+                    state["completed_node_count"] = int(state.get("completed_node_count") or 0) + len(node_infos)
+                    state["updated_at"] = _now_iso()
 
         state = _execution_states.get(task_id)
         if state is not None:
