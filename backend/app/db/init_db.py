@@ -4,7 +4,7 @@ from sqlalchemy import text
 
 from app.db.base import Base
 from app.db.session import engine
-from app.models import comfyui_setting, generated_image, photo, subtask, task, task_template  # noqa: F401
+from app.models import comfyui_setting, generated_image, generated_video, photo, subtask, task, task_template  # noqa: F401
 
 
 async def init_db() -> None:

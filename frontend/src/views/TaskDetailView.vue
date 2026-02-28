@@ -152,9 +152,9 @@
           </div>
         </div>
 
-        <div class="generated-section">
+        <div class="generated-section" v-if="getGeneratedImages(item).length">
           <div class="generated-title">生图结果</div>
-          <div class="photo-grid" v-if="getGeneratedImages(item).length">
+          <div class="photo-grid">
             <div class="photo-card generated-photo-card" v-for="(image, imageIndex) in getGeneratedImages(item)" :key="image.id">
               <el-image
                 class="preview-image"
@@ -168,7 +168,16 @@
               <div class="sort-chip">#{{ image.sort_order }}</div>
             </div>
           </div>
-          <el-empty v-else description="暂无生图结果" :image-size="60" />
+        </div>
+
+        <div class="generated-section" v-if="getGeneratedVideos(item).length">
+          <div class="generated-title">生成视频</div>
+          <div class="video-grid">
+            <div class="video-card" v-for="video in getGeneratedVideos(item)" :key="video.id">
+              <video :src="video.url" controls class="preview-video" />
+              <div class="sort-chip">#{{ video.sort_order }}</div>
+            </div>
+          </div>
         </div>
       </el-card>
     </template>
@@ -332,6 +341,11 @@ function getPhotoUrls(subtask) {
 
 function getGeneratedImageUrls(subtask) {
   return getGeneratedImages(subtask).map((item) => item.url).filter(Boolean)
+}
+
+function getGeneratedVideos(subtask) {
+  const items = Array.isArray(subtask?.generated_videos) ? subtask.generated_videos : []
+  return [...items].sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))
 }
 
 async function loadData() {
@@ -714,6 +728,28 @@ onMounted(loadData)
   background: rgba(17, 24, 39, 0.78);
   border-radius: 999px;
   padding: 1px 6px;
+}
+
+.video-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.video-card {
+  position: relative;
+  border: 1px solid #dde8f9;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #000;
+}
+
+.preview-video {
+  width: 100%;
+  display: block;
+  max-height: 320px;
+  object-fit: contain;
 }
 
 .preview-dialog-body {

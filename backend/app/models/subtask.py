@@ -39,3 +39,9 @@ class SubTask(Base):
         cascade="all, delete-orphan",
         order_by="SubTaskGeneratedImage.sort_order",
     )
+    generated_videos = relationship(
+        "SubTaskGeneratedVideo",
+        back_populates="subtask",
+        cascade="all, delete-orphan",
+        order_by="SubTaskGeneratedVideo.sort_order",
+    )

@@ -7,15 +7,19 @@ from app.db.session import get_db
 from app.schemas.task import (
     CallbackSubTaskGeneratedImagesRequest,
     CallbackSubTaskGeneratedImagesResponse,
+    CallbackSubTaskGeneratedVideosRequest,
+    CallbackSubTaskGeneratedVideosResponse,
     CallbackSubTaskStatusRequest,
     CallbackSubTaskStatusResponse,
     GeneratedImageRead,
+    GeneratedVideoRead,
 )
 from app.services.task_service import (
     get_task_or_404,
     get_subtask_or_404,
     patch_subtask_status,
     replace_subtask_generated_images,
+    replace_subtask_generated_videos,
 )
 
 router = APIRouter(prefix="/callbacks", tags=["callbacks"])
@@ -61,4 +65,24 @@ async def callback_subtask_generated_images_api(
         task_id=updated_subtask.task_id,
         saved_count=len(images),
         images=[GeneratedImageRead.model_validate(item) for item in images],
+    )
+
+
+@router.post("/subtask-generated-videos", response_model=CallbackSubTaskGeneratedVideosResponse)
+async def callback_subtask_generated_videos_api(
+    payload: CallbackSubTaskGeneratedVideosRequest,
+    session: AsyncSession = Depends(get_db),
+) -> CallbackSubTaskGeneratedVideosResponse:
+    subtask = await get_subtask_or_404(session, payload.subtask_id)
+    updated_subtask = await replace_subtask_generated_videos(
+        session,
+        subtask=subtask,
+        videos=payload.videos,
+    )
+    videos = sorted(updated_subtask.generated_videos, key=lambda item: item.sort_order)
+    return CallbackSubTaskGeneratedVideosResponse(
+        subtask_id=updated_subtask.id,
+        task_id=updated_subtask.task_id,
+        saved_count=len(videos),
+        videos=[GeneratedVideoRead.model_validate(item) for item in videos],
     )

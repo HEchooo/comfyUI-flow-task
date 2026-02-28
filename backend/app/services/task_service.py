@@ -12,10 +12,11 @@ from sqlalchemy.orm import selectinload
 from app.core.config import settings
 from app.models.enums import TaskStatus
 from app.models.generated_image import SubTaskGeneratedImage
+from app.models.generated_video import SubTaskGeneratedVideo
 from app.models.photo import SubTaskPhoto
 from app.models.subtask import SubTask
 from app.models.task import Task
-from app.schemas.task import CallbackGeneratedImageItem, SubTaskCreate, SubTaskUpdate, TaskCreate, TaskPatch
+from app.schemas.task import CallbackGeneratedImageItem, CallbackGeneratedVideoItem, SubTaskCreate, SubTaskUpdate, TaskCreate, TaskPatch
 from app.services.status import aggregate_parent_status, ensure_transition
 
 
@@ -111,6 +112,7 @@ def _task_detail_query(task_id: UUID) -> Select[tuple[Task]]:
         .options(
             selectinload(Task.subtasks).selectinload(SubTask.photos),
             selectinload(Task.subtasks).selectinload(SubTask.generated_images),
+            selectinload(Task.subtasks).selectinload(SubTask.generated_videos),
         )
     )
 
@@ -134,7 +136,7 @@ async def get_subtask_or_404(session: AsyncSession, subtask_id: UUID) -> SubTask
     stmt = (
         select(SubTask)
         .where(SubTask.id == subtask_id)
-        .options(selectinload(SubTask.photos), selectinload(SubTask.generated_images))
+        .options(selectinload(SubTask.photos), selectinload(SubTask.generated_images), selectinload(SubTask.generated_videos))
     )
     subtask = await session.scalar(stmt)
     if not subtask:
@@ -444,7 +446,6 @@ async def patch_subtask_status(
         extra["last_status_message"] = message
         subtask.extra = extra
 
-    await _sync_parent_status(session, subtask.task_id)
     await session.commit()
     return await get_subtask_or_404(session, subtask.id)
 
@@ -462,6 +463,33 @@ async def replace_subtask_generated_images(
         session.add_all(
             [
                 SubTaskGeneratedImage(
+                    subtask_id=subtask.id,
+                    url=item.url,
+                    object_key=item.object_key,
+                    sort_order=item.sort_order,
+                    extra=item.extra,
+                )
+                for item in ordered
+            ]
+        )
+
+    await session.commit()
+    return await get_subtask_or_404(session, subtask.id)
+
+
+async def replace_subtask_generated_videos(
+    session: AsyncSession,
+    *,
+    subtask: SubTask,
+    videos: list[CallbackGeneratedVideoItem],
+) -> SubTask:
+    await session.execute(delete(SubTaskGeneratedVideo).where(SubTaskGeneratedVideo.subtask_id == subtask.id))
+
+    if videos:
+        ordered = sorted(videos, key=lambda item: item.sort_order)
+        session.add_all(
+            [
+                SubTaskGeneratedVideo(
                     subtask_id=subtask.id,
                     url=item.url,
                     object_key=item.object_key,

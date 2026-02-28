@@ -34,6 +34,19 @@ class GeneratedImageRead(GeneratedImageBase):
     model_config = ConfigDict(from_attributes=True)
 
 
+class GeneratedVideoBase(BaseModel):
+    url: str
+    object_key: str | None = None
+    sort_order: int = 0
+    extra: dict = Field(default_factory=dict)
+
+
+class GeneratedVideoRead(GeneratedVideoBase):
+    id: UUID
+    created_at: datetime
+    model_config = ConfigDict(from_attributes=True)
+
+
 class SubTaskBase(BaseModel):
     platform: str = Field(min_length=1, max_length=50)
     account_name: str = Field(min_length=1, max_length=100)
@@ -64,6 +77,7 @@ class SubTaskRead(SubTaskBase):
     updated_at: datetime
     photos: list[PhotoRead] = Field(default_factory=list)
     generated_images: list[GeneratedImageRead] = Field(default_factory=list)
+    generated_videos: list[GeneratedVideoRead] = Field(default_factory=list)
     model_config = ConfigDict(from_attributes=True)
 
 
@@ -203,6 +217,25 @@ class CallbackSubTaskGeneratedImagesResponse(BaseModel):
     task_id: UUID
     saved_count: int
     images: list[GeneratedImageRead] = Field(default_factory=list)
+
+
+class CallbackGeneratedVideoItem(BaseModel):
+    url: str = Field(min_length=1)
+    object_key: str | None = None
+    sort_order: int = Field(default=0, ge=0)
+    extra: dict = Field(default_factory=dict)
+
+
+class CallbackSubTaskGeneratedVideosRequest(BaseModel):
+    subtask_id: UUID
+    videos: list[CallbackGeneratedVideoItem] = Field(default_factory=list)
+
+
+class CallbackSubTaskGeneratedVideosResponse(BaseModel):
+    subtask_id: UUID
+    task_id: UUID
+    saved_count: int
+    videos: list[GeneratedVideoRead] = Field(default_factory=list)
 
 
 class TemplateSubTaskBase(BaseModel):
