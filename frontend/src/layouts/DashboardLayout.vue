@@ -15,23 +15,26 @@
           class="comfyui-pane"
           :class="{ 'comfyui-pane--hidden': !isFullscreen }"
         >
-          <!-- 首次加载遮罩（仅加载期间显示） -->
-          <transition name="fade">
-            <div v-if="iframeLoading" class="comfyui-loading">
-              <div class="loading-track">
-                <div class="loading-fill" :style="{ width: loadingProgress + '%' }" />
+          <!-- 懒加载：首次点击 ComfyUI 菜单时才挂载 iframe -->
+          <template v-if="comfyuiLoaded">
+            <!-- 首次加载遮罩（仅加载期间显示） -->
+            <transition name="fade">
+              <div v-if="iframeLoading" class="comfyui-loading">
+                <div class="loading-track">
+                  <div class="loading-fill" :style="{ width: loadingProgress + '%' }" />
+                </div>
+                <div class="loading-label">ComfyUI 加载中 {{ Math.floor(loadingProgress) }}%</div>
               </div>
-              <div class="loading-label">ComfyUI 加载中 {{ Math.floor(loadingProgress) }}%</div>
-            </div>
-          </transition>
-          <iframe
-            :src="comfyuiUrl"
-            class="comfyui-frame"
-            frameborder="0"
-            allow="clipboard-read; clipboard-write"
-            title="ComfyUI 编辑器"
-            @load="onIframeLoad"
-          />
+            </transition>
+            <iframe
+              :src="comfyuiUrl"
+              class="comfyui-frame"
+              frameborder="0"
+              allow="clipboard-read; clipboard-write"
+              title="ComfyUI 编辑器"
+              @load="onIframeLoad"
+            />
+          </template>
         </div>
 
         <!--
@@ -56,7 +59,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed, watch, onBeforeUnmount } from 'vue'
 import { useRoute } from 'vue-router'
 import AppSidebar from '../components/AppSidebar.vue'
 import AppHeader from '../components/AppHeader.vue'
@@ -67,25 +70,25 @@ const route = useRoute()
 const isFullscreen = computed(() => route.name === 'comfyui')
 const comfyuiUrl = import.meta.env.VITE_COMFYUI_EMBED_URL || 'http://34.42.194.164:8189'
 
-const iframeLoading = ref(true)
+// 懒加载：仅在用户首次访问 ComfyUI 路由时才挂载 iframe
+const comfyuiLoaded = ref(false)
+const iframeLoading = ref(false)
 const loadingProgress = ref(0)
 let progressTimer = null
 
 function startProgress() {
   loadingProgress.value = 0
+  iframeLoading.value = true
   clearInterval(progressTimer)
   progressTimer = setInterval(() => {
     const remaining = 99 - loadingProgress.value
     if (remaining > 0) {
-      // 变慢趋势，会卡在 99% 等待内部引擎
       loadingProgress.value += remaining * 0.05 + 0.2
     }
   }, 250)
 }
 
 function onIframeLoad() {
-  // HTML 框架加载完毕。ComfyUI 内部需经过较长 JS 初始化与网络请求才会画出自身 UI。
-  // 额外驻留 2800ms，以完美掩盖内部初始化的大段白屏，实现自定义进度条直接到成品界面的无缝衔接。
   setTimeout(() => {
     clearInterval(progressTimer)
     loadingProgress.value = 100
@@ -95,8 +98,12 @@ function onIframeLoad() {
   }, 2800)
 }
 
-onMounted(() => {
-  startProgress()
+// 监听路由，首次进入 comfyui 路由时触发加载
+watch(isFullscreen, (val) => {
+  if (val && !comfyuiLoaded.value) {
+    comfyuiLoaded.value = true
+    startProgress()
+  }
 })
 
 onBeforeUnmount(() => {

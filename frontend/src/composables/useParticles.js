@@ -1,4 +1,5 @@
-import * as THREE from 'three'
+// Three.js 懒加载，仅在 init() 调用时才动态导入，不影响主 bundle
+let THREE = null
 
 // Human progress milestones - our infinite planets of achievement
 const MILESTONES = [
@@ -143,15 +144,24 @@ export function useParticles() {
   let mouseY = 0
   let targetMouseX = 0
   let targetMouseY = 0
-  let mouseWorldPos = new THREE.Vector3()
-  let raycaster = new THREE.Raycaster()
+  // 延迟初始化，等待 THREE 加载后赋值
+  let mouseWorldPos = null
+  let raycaster = null
   let hoveredPlanet = null
 
   // Callback for planet hover
   let onPlanetHover = null
   let onPlanetLeave = null
 
-  function init(canvas, callbacks = {}) {
+  async function init(canvas, callbacks = {}) {
+    // 首次调用时才加载 Three.js，后续复用已加载的模块
+    if (!THREE) {
+      THREE = await import('three')
+    }
+    // THREE 加载完毕后初始化依赖 THREE 的对象
+    mouseWorldPos = new THREE.Vector3()
+    raycaster = new THREE.Raycaster()
+
     onPlanetHover = callbacks.onPlanetHover
     onPlanetLeave = callbacks.onPlanetLeave
 
@@ -507,9 +517,10 @@ export function useParticles() {
     renderer.setSize(width, height)
   }
 
-  const clock = new THREE.Clock()
+  let clock = null
 
   function animate() {
+    if (!clock) clock = new THREE.Clock()
     animationId = requestAnimationFrame(animate)
 
     const elapsed = clock.getElapsedTime()

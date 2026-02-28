@@ -447,9 +447,9 @@ function handleClick(e) {
   }
 }
 
-onMounted(() => {
+onMounted(async () => {
   if (canvasRef.value) {
-    init(canvasRef.value, {
+    await init(canvasRef.value, {
       onPlanetHover: handlePlanetHover,
       onPlanetLeave: handlePlanetLeave
     })
