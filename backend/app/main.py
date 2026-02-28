@@ -58,6 +58,9 @@ async def request_logging_middleware(request: Request, call_next):
         duration_ms,
     )
     response.headers["X-Request-ID"] = request_id
+    # 允许任意来源通过 iframe 嵌入本站
+    response.headers["X-Frame-Options"] = "ALLOWALL"
+    response.headers["Content-Security-Policy"] = "frame-ancestors *"
     return response
 
 
