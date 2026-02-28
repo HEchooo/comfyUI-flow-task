@@ -75,49 +75,6 @@ export function isDuplicateRequestError(error) {
   return Boolean(error?.isDuplicateRequest || error?.name === 'DuplicateRequestError')
 }
 
-http.interceptors.request.use((config) => {
-  const requestKey = buildRequestKey(config)
-  const now = Date.now()
-  const recentAt = recentRequests.get(requestKey)
-
-  if (pendingRequests.has(requestKey)) {
-    return Promise.reject(createDuplicateRequestError(config))
-  }
-  if (recentAt && now - recentAt < DUPLICATE_GAP_MS) {
-    return Promise.reject(createDuplicateRequestError(config))
-  }
-
-  config.__requestKey = requestKey
-  pendingRequests.set(requestKey, now)
-
-  const token = localStorage.getItem('task_manager_token') || ''
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`
-  }
-  return config
-})
-
-http.interceptors.response.use(
-  (response) => {
-    releaseRequest(response.config)
-    return response
-  },
-  (error) => {
-    releaseRequest(error?.config)
-    if (isDuplicateRequestError(error)) {
-      return Promise.reject(error)
-    }
-    if (error?.response?.status === 401) {
-      localStorage.removeItem('task_manager_token')
-      localStorage.removeItem('task_manager_username')
-      if (window.location.pathname !== '/login') {
-        window.location.href = '/login'
-      }
-    }
-    return Promise.reject(error)
-  }
-)
-
 // iframe 模式下的 token 管理
 let iframeToken = null
 
@@ -155,5 +112,26 @@ http.interceptors.request.use((config) => {
   }
   return config
 })
+
+http.interceptors.response.use(
+  (response) => {
+    releaseRequest(response.config)
+    return response
+  },
+  (error) => {
+    releaseRequest(error?.config)
+    if (isDuplicateRequestError(error)) {
+      return Promise.reject(error)
+    }
+    if (error?.response?.status === 401) {
+      localStorage.removeItem('task_manager_token')
+      localStorage.removeItem('task_manager_username')
+      if (window.location.pathname !== '/login') {
+        window.location.href = '/login'
+      }
+    }
+    return Promise.reject(error)
+  }
+)
 
 export default http
