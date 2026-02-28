@@ -134,9 +134,23 @@ const IconSetting = () => h('svg', {
   h('path', { d: 'M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z' })
 ])
 
+const IconComfyUI = () => h('svg', {
+  width: 20, height: 20, viewBox: '0 0 24 24', fill: 'none',
+  stroke: 'currentColor', 'stroke-width': 1.75,
+  'stroke-linecap': 'round', 'stroke-linejoin': 'round'
+}, [
+  h('rect', { x: 2, y: 3, width: 5, height: 5, rx: 1 }),
+  h('rect', { x: 17, y: 3, width: 5, height: 5, rx: 1 }),
+  h('rect', { x: 9.5, y: 16, width: 5, height: 5, rx: 1 }),
+  h('path', { d: 'M7 5.5h4a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1H7' }),
+  h('path', { d: 'M17 5.5h-4a1 1 0 0 0-1 1v4a1 1 0 0 0 1 1h4' }),
+  h('line', { x1: 12, y1: 11.5, x2: 12, y2: 16 })
+])
+
 const menuItems = [
   { path: '/dashboard', name: 'tasks', label: '任务列表', iconComponent: IconList },
   { path: '/dashboard/templates', name: 'templates', label: '工作流模板', iconComponent: IconFlow },
+  { path: '/dashboard/comfyui', name: 'comfyui', label: 'ComfyUI 编辑器', iconComponent: IconComfyUI },
   { path: '/dashboard/settings', name: 'settings', label: '设置', iconComponent: IconSetting }
 ]
 

@@ -118,4 +118,42 @@ http.interceptors.response.use(
   }
 )
 
+// iframe 模式下的 token 管理
+let iframeToken = null
+
+export function setIframeToken(token) {
+  iframeToken = token
+}
+
+export function getIframeToken() {
+  return iframeToken
+}
+
+export function clearIframeToken() {
+  iframeToken = null
+}
+
+http.interceptors.request.use((config) => {
+  const requestKey = buildRequestKey(config)
+  const now = Date.now()
+  const recentAt = recentRequests.get(requestKey)
+
+  if (pendingRequests.has(requestKey)) {
+    return Promise.reject(createDuplicateRequestError(config))
+  }
+  if (recentAt && now - recentAt < DUPLICATE_GAP_MS) {
+    return Promise.reject(createDuplicateRequestError(config))
+  }
+
+  config.__requestKey = requestKey
+  pendingRequests.set(requestKey, now)
+
+  // 优先使用 iframe token，其次使用 localStorage
+  const token = iframeToken || localStorage.getItem('task_manager_token') || ''
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`
+  }
+  return config
+})
+
 export default http

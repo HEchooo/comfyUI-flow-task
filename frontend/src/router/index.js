@@ -80,6 +80,12 @@ const routes = [
         name: 'settings',
         component: () => import('../views/SettingsView.vue'),
         meta: { title: '设置' }
+      },
+      {
+        path: 'comfyui',
+        name: 'comfyui',
+        component: () => import('../views/ComfyUIView.vue'),
+        meta: { title: 'ComfyUI 编辑器' }
       }
     ]
   },
@@ -95,15 +101,24 @@ const routes = [
 ]
 
 const router = createRouter({
-  history: createWebHistory(),
+  // 支持子路径部署（如 /comfyui-flow/）
+  history: createWebHistory(import.meta.env.BASE_URL || '/comfyui-flow/'),
   routes
 })
 
 router.beforeEach((to) => {
+  // iframe 模式下，如果父系统传递了 token，则不需要检查
+  const isInIframe = window.parent !== window
   const token = localStorage.getItem('task_manager_token')
   const isPublic = Boolean(to.meta?.public)
 
+  // iframe 模式且有 token，或普通模式有 token，允许访问
   if (!token && !isPublic) {
+    // 在 iframe 中且没有 token，通知父系统
+    if (isInIframe) {
+      window.parent.postMessage({ type: 'requestAuth', source: 'comfyui-flow' }, '*')
+      return false // 暂时不跳转，等待父系统响应
+    }
     return '/login'
   }
   if (token && to.path === '/login') {

@@ -5,7 +5,7 @@
     <div class="dashboard-main" :style="{ marginLeft: isCollapsed ? 'var(--sidebar-collapsed-width)' : 'var(--sidebar-width)' }">
       <AppHeader @toggle-sidebar="toggle" />
 
-      <main class="dashboard-content">
+      <main class="dashboard-content" :class="{ 'dashboard-content--fullscreen': isFullscreen }">
         <router-view v-slot="{ Component, route: viewRoute }">
           <transition name="page-fade" mode="out-in">
             <div :key="viewRoute.path" class="page-wrapper">
@@ -19,11 +19,15 @@
 </template>
 
 <script setup>
+import { computed } from 'vue'
+import { useRoute } from 'vue-router'
 import AppSidebar from '../components/AppSidebar.vue'
 import AppHeader from '../components/AppHeader.vue'
 import { useSidebar } from '../composables/useSidebar'
 
 const { isCollapsed, toggle } = useSidebar()
+const route = useRoute()
+const isFullscreen = computed(() => route.name === 'comfyui')
 </script>
 
 <style scoped>
@@ -53,10 +57,21 @@ const { isCollapsed, toggle } = useSidebar()
   position: relative;
 }
 
+.dashboard-content--fullscreen {
+  padding: 0;
+  overflow: hidden;
+}
+
 /* ── Page wrapper for proper transitions ── */
 .page-wrapper {
   min-height: 100%;
   width: 100%;
+  position: relative;
+}
+
+.dashboard-content--fullscreen .page-wrapper {
+  height: 100%;
+  min-height: 100%;
 }
 
 /* ── Page fade transition ── */
