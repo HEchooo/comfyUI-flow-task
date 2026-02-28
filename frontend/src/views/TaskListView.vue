@@ -21,6 +21,7 @@
     </div>
 
     <el-table
+      ref="tableRef"
       :data="rows"
       v-loading="loading"
       border
@@ -31,7 +32,7 @@
     >
       <el-table-column type="expand" width="44">
         <template #default="scope">
-          <div class="row-progress-wrap">
+          <div class="row-progress-wrap" :style="{ width: expandWidth }">
             <ExecutionProgress
               inline
               :task-id="String(scope.row.id)"
@@ -195,7 +196,7 @@
 </template>
 
 <script setup>
-import { nextTick, onMounted, reactive, ref } from 'vue'
+import { nextTick, onMounted, onBeforeUnmount, reactive, ref } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
 import ExecutionProgress from '../components/ExecutionProgress.vue'
@@ -206,6 +207,8 @@ import { isDuplicateRequestError } from '../api/http'
 import { fetchComfyuiSettings } from '../api/settings'
 import { TASK_STATUS_OPTIONS, taskStatusType } from '../utils/status'
 
+const tableRef = ref(null)
+const expandWidth = ref('100%')
 const loading = ref(false)
 const rows = ref([])
 const deletingTaskId = ref('')
@@ -505,7 +508,51 @@ async function handleDelete(row) {
   }
 }
 
-onMounted(loadTasks)
+const updateExpandWidth = () => {
+  if (tableRef.value?.$el) {
+    const width = tableRef.value.$el.clientWidth
+    if (width > 0) {
+      // 减去 2px 抵消可能会引入额外滚动条的边框差异
+      expandWidth.value = `${width - 2}px`
+    }
+  }
+}
+
+let resizeObserver = null
+let tableBodyWrap = null
+
+const syncScroll = (e) => {
+  const scrollLeft = e.target.scrollLeft
+  const wraps = document.querySelectorAll('.row-progress-wrap')
+  wraps.forEach(wrap => {
+    wrap.style.transform = `translateX(${scrollLeft}px)`
+  })
+}
+
+onMounted(() => {
+  loadTasks()
+  resizeObserver = new ResizeObserver(() => {
+    updateExpandWidth()
+  })
+  if (tableRef.value?.$el) {
+    resizeObserver.observe(tableRef.value.$el)
+    nextTick(() => {
+      tableBodyWrap = tableRef.value.$el.querySelector('.el-scrollbar__wrap') || tableRef.value.$el.querySelector('.el-table__body-wrapper')
+      if (tableBodyWrap) {
+        tableBodyWrap.addEventListener('scroll', syncScroll)
+      }
+    })
+  }
+})
+
+onBeforeUnmount(() => {
+  if (tableBodyWrap) {
+    tableBodyWrap.removeEventListener('scroll', syncScroll)
+  }
+  if (resizeObserver) {
+    resizeObserver.disconnect()
+  }
+})
 </script>
 
 <style scoped>
@@ -561,7 +608,10 @@ onMounted(loadTasks)
 }
 
 .row-progress-wrap {
-  padding: 4px 6px;
+  padding: 12px;
+  z-index: 1;
+  will-change: transform;
+  box-sizing: border-box;
 }
 
 .pagination {
