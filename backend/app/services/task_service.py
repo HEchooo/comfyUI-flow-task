@@ -17,7 +17,7 @@ from app.models.photo import SubTaskPhoto
 from app.models.subtask import SubTask
 from app.models.task import Task
 from app.schemas.task import CallbackGeneratedImageItem, CallbackGeneratedVideoItem, SubTaskCreate, SubTaskUpdate, TaskCreate, TaskPatch
-from app.services.status import aggregate_parent_status, ensure_transition
+from app.services.status import aggregate_parent_status, can_transition, ensure_transition
 
 
 def _normalize_schedule_fields(
@@ -473,6 +473,9 @@ async def replace_subtask_generated_images(
             ]
         )
 
+    if can_transition(subtask.status, TaskStatus.success):
+        subtask.status = TaskStatus.success
+
     await session.commit()
     return await get_subtask_or_404(session, subtask.id)
 
@@ -499,6 +502,9 @@ async def replace_subtask_generated_videos(
                 for item in ordered
             ]
         )
+
+    if can_transition(subtask.status, TaskStatus.success):
+        subtask.status = TaskStatus.success
 
     await session.commit()
     return await get_subtask_or_404(session, subtask.id)
