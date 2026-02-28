@@ -40,17 +40,17 @@
 > **注**：请将以下占位符 URL 替换为实际的应用截图。项目中可将截图放入 `docs/screenshots/` 目录下。
 
 ### 炫酷着陆页 (Landing Page)
-![Landing Page](https://via.placeholder.com/800x450.png?text=Landing+Page+Screenshot "科技感粒子着陆页")
+![Landing Page](./docs/screenshots/landing%20page.png)
 
 ### 主控制台与状态图表 (Dashboard & Status)
-![Dashboard](https://via.placeholder.com/800x450.png?text=Dashboard+Screenshot "Dashboard")
+![Dashboard](./docs/screenshots/dashboard.png)
 
 ### 工作流配置与批量参数 (Template Configuration)
-![Workflow Setup](https://via.placeholder.com/800x450.png?text=Workflow+Setup+Screenshot "工作流模板配置")
+![Workflow Setup](./docs/screenshots/template.png)
 
 ### 任务追踪与 ComfyUI 原生内嵌 (Task Tracking & Embedding)
-![Task Details](https://via.placeholder.com/800x450.png?text=Task+Details+Screenshot "任务进度追踪")
-![ComfyUI Embed](https://via.placeholder.com/800x450.png?text=ComfyUI+Embed+Screenshot "原版编辑器全屏悬浮框模式")
+![Task Details](./docs/screenshots/task_detail.png)
+![ComfyUI Embed](./docs/screenshots/comfyui.png)
 
 ## 💻 技术栈架构 (Tech Stack)
 
